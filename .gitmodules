@@ -1,0 +1,9 @@
+[submodule "kerinci-internal/src/main/c/external/GLFW"]
+	path = kerinci-internal/src/main/c/external/GLFW
+	url = https://github.com/glfw/glfw.git
+[submodule "kerinci-internal/src/main/c/external/GLM"]
+	path = kerinci-internal/src/main/c/external/GLM
+	url = https://github.com/g-truc/glm.git
+[submodule "kerinci-internal/src/main/c/external/tinyobjloader"]
+	path = kerinci-internal/src/main/c/external/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git
