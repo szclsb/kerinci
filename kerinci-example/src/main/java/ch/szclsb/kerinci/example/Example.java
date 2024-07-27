@@ -1,27 +1,22 @@
 package ch.szclsb.kerinci.example;
 
-import ch.szclsb.kerinci.graphic.VulkanApi;
+import ch.szclsb.kerinci.internal.GlfwApi;
 
 import java.lang.foreign.Arena;
 
 public class Example {
     public static void main(String[] args) {
-        var api = new VulkanApi();
-
-        try (var session = Arena.ofShared()) {
-
-            api.glfwInit();
+        try (var session = Arena.ofShared(); var glfw = new GlfwApi()) {
             var title = session.allocateUtf8String("Kerinci Example");
-            var window = api.glfwCreateWindow(500, 350, title);
+            var window = glfw.createWindow(500, 350, title);
 
-            while (!api.glfwShouldClose(window)) {
-                api.glfwPollEvents();
+            while (!glfw.shouldClose(window)) {
+                glfw.pollEvents();
 
-                //todo
+                //todo game loop
             }
 
-            api.glfwDestroyWindow(window);
-            api.glfwTerminate();
+            glfw.destroyWindow(window);
         }
     }
 }

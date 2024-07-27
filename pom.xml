@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>kerinci-graphic</module>
+        <module>kerinci-internal</module>
         <module>kerinci-example</module>
         <module>cmake-plugin</module>
     </modules>
