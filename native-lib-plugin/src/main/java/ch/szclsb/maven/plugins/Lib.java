@@ -5,8 +5,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class Lib {
     @Parameter(property = "name", required = true)
     private String name;
-    @Parameter(property = "nativePath", required = true)
-    private String nativePath;
     @Parameter(property = "includeDir", required = true)
     private String includeDir;
     @Parameter(property = "header", required = true)
@@ -18,10 +16,6 @@ public class Lib {
 
     public String getName() {
         return name;
-    }
-
-    public String getNativePath() {
-        return nativePath;
     }
 
     public String getIncludeDir() {

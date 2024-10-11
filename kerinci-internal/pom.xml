@@ -35,46 +35,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>ch.szclsb.maven-plugins</groupId>-->
-<!--                <artifactId>cmake-plugin</artifactId>-->
-<!--                <version>1.0-SNAPSHOT</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>generate-sources</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>cmake</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <workingDirectory>${project.basedir}</workingDirectory>-->
-<!--                    <nativePath>src/main/c</nativePath>-->
-<!--                    <nativeBuildPath>${dllBuildDir}</nativeBuildPath>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-<!--            <plugin>-->
-<!--                <groupId>ch.szclsb.maven-plugins</groupId>-->
-<!--                <artifactId>jextract-plugin</artifactId>-->
-<!--                <version>1.0-SNAPSHOT</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>generate-sources</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>jextract</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <commandFileExtension>.bat</commandFileExtension>-->
-<!--                    <workingDirectory>${project.basedir}</workingDirectory>-->
-<!--                    <includeDir>${vulkanSdk}/Include</includeDir>-->
-<!--                    <header>${vulkanSdk}/Include/vulkan/vulkan.h</header>-->
-<!--                    <library>${project.basedir}/${dllBuildDir}/Debug/Kerinci.dll</library>-->
-<!--                    <target>${vkSource}</target>-->
-<!--                    <targetPackage>ch.szclsb.kerinci.vulkan</targetPackage>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
             <plugin>
                 <groupId>ch.szclsb.kerinci</groupId>
                 <artifactId>native-lib-plugin</artifactId>
@@ -90,17 +50,31 @@
                 <configuration>
                     <windows>true</windows>
                     <workingDirectory>${project.basedir}</workingDirectory>
+                    <nativePath>src/main/c</nativePath>
                     <nativeBuildPath>${dllBuildDir}</nativeBuildPath>
                     <target>${nativeLibSource}</target>
                     <libs>
                         <lib>
                             <name>Vulkan</name>
-                            <nativePath>src/main/c</nativePath>
                             <includeDir>${vulkanSdk}/Include</includeDir>
                             <header>${vulkanSdk}/Include/vulkan/vulkan.h</header>
                             <targetPackage>ch.szclsb.kerinci.vulkan</targetPackage>
-                            <library>${dllBuildDir}/Vulkan/Debug/Kerinci.dll</library>
+                            <library>${dllBuildDir}/Debug/KerinciVulkan.dll</library>
                         </lib>
+<!--                        <lib>-->
+<!--                            <name>Glfw</name>-->
+<!--&lt;!&ndash;                            <includeDir>${vulkanSdk}/Include</includeDir>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <header>${vulkanSdk}/Include/vulkan/vulkan.h</header>&ndash;&gt;-->
+<!--                            <targetPackage>ch.szclsb.kerinci.glfw</targetPackage>-->
+<!--                            <library>${dllBuildDir}/Debug/KerinciGlfw.dll</library>-->
+<!--                        </lib>-->
+<!--                        <lib>-->
+<!--                            <name>Glm</name>-->
+<!--&lt;!&ndash;                            <includeDir>${vulkanSdk}/Include</includeDir>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <header>${vulkanSdk}/Include/vulkan/vulkan.h</header>&ndash;&gt;-->
+<!--                            <targetPackage>ch.szclsb.kerinci.glm</targetPackage>-->
+<!--                            <library>${dllBuildDir}/Debug/KerinciGlm.dll</library>-->
+<!--                        </lib>-->
                     </libs>
                 </configuration>
             </plugin>

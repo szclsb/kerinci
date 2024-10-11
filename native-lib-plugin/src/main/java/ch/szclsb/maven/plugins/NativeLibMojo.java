@@ -11,6 +11,8 @@ import java.util.Collection;
 public class NativeLibMojo extends AbstractCommandProcessMojo {
     @Parameter(property = "windows")
     private boolean windows;
+    @Parameter(property = "nativePath", required = true)
+    private String nativePath;
     @Parameter(property = "nativeBuildPath", defaultValue = "native-build")
     private String nativeBuildPath;
     @Parameter(property = "target", defaultValue = "target/generated-sources")
@@ -21,17 +23,21 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info("start generating native handlers");
+        getLog().info("start generating native shared library");
+        executeCommands(
+                new CommandLine("cmake",
+                        "-S", nativePath,
+                        "-B", nativeBuildPath,
+                        "."),
+                new CommandLine("cmake",
+                        "--build", nativeBuildPath)
+        );
+        getLog().info("finished generating native shared library");
 
+        getLog().info("start generating native handlers");
         for (var libDefinition : libs) {
             getLog().info("Generating native handle for " + libDefinition.getName());
             executeCommands(
-                    new CommandLine("cmake",
-                            "-S", libDefinition.getNativePath(),
-                            "-B", nativeBuildPath + "/" + libDefinition.getName(),
-                            "."),
-                    new CommandLine("cmake",
-                            "--build", nativeBuildPath + "/" + libDefinition.getName()),
                     new CommandLine("jextract" + (windows ? ".bat" : ""),
                             "--include-dir", libDefinition.getIncludeDir(),
                             "--output", target,
@@ -42,7 +48,6 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
             );
             getLog().info("Generated native handle");
         }
-
         getLog().info("finished generating native handlers");
     }
 }
