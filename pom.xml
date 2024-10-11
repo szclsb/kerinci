@@ -11,6 +11,7 @@
     <modules>
         <module>kerinci-internal</module>
         <module>kerinci-example</module>
+        <module>native-lib-plugin</module>
     </modules>
 
     <properties>
