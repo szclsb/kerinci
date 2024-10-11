@@ -18,11 +18,9 @@ if (NOT Vulkan_FOUND)
     message(FATAL_ERROR "Could not find vulkan lib")
 endif()
 
-file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+add_library(${PROJECT_NAME} SHARED main.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${PROJECT_SOURCE_DIR}/src
         ${Vulkan_INCLUDE_DIRS}
         external/GLFW/include
         external/GLM
