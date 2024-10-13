@@ -5,6 +5,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Mojo(name = "native-lib")
@@ -37,15 +38,23 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
         getLog().info("start generating native handlers");
         for (var libDefinition : libs) {
             getLog().info("Generating native handle for " + libDefinition.getName());
-            executeCommands(
-                    new CommandLine("jextract" + (windows ? ".bat" : ""),
-                            "--include-dir", libDefinition.getIncludeDir(),
-                            "--output", target,
-                            "--target-package", libDefinition.getTargetPackage(),
-                            "--library", libDefinition.getLibrary(),
-                            "--source",
-                            libDefinition.getHeader())
-            );
+            var args = new ArrayList<String>();
+            args.add("jextract" + (windows ? ".bat" : ""));
+            args.add("--source");
+            libDefinition.getIncludeDirs().forEach(includeDir -> {
+                args.add("--include-dir"); args.add(includeDir);
+            });
+            if (libDefinition.getDefineMacros() != null) {
+                libDefinition.getDefineMacros().forEach(defineMarco -> {
+                    args.add("--define-macro"); args.add(defineMarco);
+                });
+            }
+            args.add("--output"); args.add(target);
+            args.add("--target-package"); args.add(libDefinition.getTargetPackage());
+            args.add("--library"); args.add(libDefinition.getLibrary());
+            args.add(libDefinition.getHeader());
+
+            executeCommands(new CommandLine(args.toArray(String[]::new)));
             getLog().info("Generated native handle");
         }
         getLog().info("finished generating native handlers");

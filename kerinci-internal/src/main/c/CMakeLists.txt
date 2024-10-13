@@ -21,29 +21,16 @@ if (NOT Vulkan_FOUND)
     message(FATAL_ERROR "Could not find vulkan lib")
 endif()
 
-# Vulkan
-add_library(${NAME_VULKAN} SHARED main.cpp)
-target_include_directories(${NAME_VULKAN} PUBLIC
+add_library(${NAME} SHARED main.cpp)
+target_include_directories(${NAME} PUBLIC
         ${Vulkan_INCLUDE_DIRS}
-)
-target_link_libraries(${NAME_VULKAN}
-        ${Vulkan_LIBRARIES}
-)
-
-#GLFW
-add_library(${NAME_GLFW} SHARED main.cpp)
-target_include_directories(${NAME_GLFW} PUBLIC
         external/GLFW/include
+        external/GLM
 )
-target_link_directories(${NAME_GLFW} PUBLIC
+target_link_directories(${NAME} PUBLIC
         external/GLFW/src
 )
-target_link_libraries(${NAME_GLFW}
+target_link_libraries(${NAME}
+        ${Vulkan_LIBRARIES}
         glfw
-)
-
-#GLM
-add_library(${NAME_GLM} SHARED main.cpp)
-target_include_directories(${NAME_GLM} PUBLIC
-        external/GLM
 )

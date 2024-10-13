@@ -1,28 +1,27 @@
 package ch.szclsb.kerinci.example;
 
+import ch.szclsb.kerinci.vulkan.GlfwApi;
 import ch.szclsb.kerinci.vulkan.VulkanApi;
 
 import java.lang.foreign.Arena;
 
 public class Example {
     public static void main(String[] args) {
-        try (var vk = new VulkanApi("Example")) {
-            System.out.println("Yeah...");
+        try (var arena = Arena.ofShared();
+             var glfw = new GlfwApi(arena);  //fixme  unresolved symbol: glfwInit
+             var vk = new VulkanApi(arena, "Kerinci", glfw)) {
+
+            try (var window = glfw.createWindow(500, 350, "Kerinci Example")) {
+                window.createWindowSurface(vk);
+
+                while (!window.shouldClose()) {
+                    glfw.pollEvents();
+
+                    //todo game loop
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-//        try (var session = Arena.ofShared(); var glfw = new GlfwApi()) {
-//            var title = session.allocateUtf8String("Kerinci Example");
-//            var window = glfw.createWindow(500, 350, title);
-//
-//            while (!glfw.shouldClose(window)) {
-//                glfw.pollEvents();
-//
-//                //todo game loop
-//            }
-//
-//            glfw.destroyWindow(window);
-//        }
     }
 }
