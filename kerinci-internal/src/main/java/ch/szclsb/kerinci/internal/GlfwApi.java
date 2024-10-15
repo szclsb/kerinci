@@ -1,9 +1,8 @@
-package ch.szclsb.kerinci.vulkan;
+package ch.szclsb.kerinci.internal;
 
 import java.lang.foreign.Arena;
-import java.lang.foreign.MemorySegment;
 
-import static ch.szclsb.kerinci.glfw.glfw3_h.*;
+import static ch.szclsb.kerinci.api.api_h.*;
 
 public class GlfwApi implements AutoCloseable {
     private final Arena arena;
@@ -14,9 +13,9 @@ public class GlfwApi implements AutoCloseable {
     }
 
     private void initGlfw() {
-        glfwInit();
-        glfwWindowHint(GLFW_CLIENT_API(), GLFW_NO_API());  // Disable OpenGl
-        glfwWindowHint(GLFW_RESIZABLE(), GLFW_TRUE());
+        krc_glfwInit();
+        krc_glfwWindowHint(GLFW_CLIENT_API(), GLFW_NO_API());  // Disable OpenGl
+        krc_glfwWindowHint(GLFW_RESIZABLE(), GLFW_TRUE());
     }
 
     public Window createWindow(int width, int height, String name) {
@@ -24,11 +23,11 @@ public class GlfwApi implements AutoCloseable {
     }
 
     public void pollEvents() {
-        glfwPollEvents();
+        krc_glfwPollEvents();
     }
 
     @Override
     public void close() throws Exception {
-        glfwTerminate();
+        krc_glfwTerminate();
     }
 }

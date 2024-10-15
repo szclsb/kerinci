@@ -56,27 +56,39 @@
                     <target>${nativeLibSource}</target>
                     <libs>
                         <lib>
-                            <name>Vulkan</name>
+                            <name>Api</name>
                             <includeDirs>
-                                <includeDir>${vulkanSdk}/Include</includeDir>
-                            </includeDirs>
-                            <header>${vulkanSdk}/Include/vulkan/vulkan.h</header>
-                            <targetPackage>ch.szclsb.kerinci.vulkan</targetPackage>
-                            <library>${dllBuildDir}/Debug/Kerinci.dll</library>
-                        </lib>
-                        <lib>
-                            <name>Glfw</name>
-                            <includeDirs>
+                                <includeDir>${nativeLibDir}/include</includeDir>
                                 <includeDir>${nativeLibDir}/external/GLFW/include</includeDir>
                                 <includeDir>${vulkanSdk}/Include</includeDir>
                             </includeDirs>
-                            <header>${nativeLibDir}/external/GLFW/include/GLFW/glfw3.h</header>
-                            <defineMacros>
-                                <defineMacro>GLFW_INCLUDE_VULKAN</defineMacro>
-                            </defineMacros>
-                            <targetPackage>ch.szclsb.kerinci.glfw</targetPackage>
+                            <header>${nativeLibDir}/include/kerinci/api.h</header>
+                            <targetPackage>ch.szclsb.kerinci.api</targetPackage>
                             <library>${dllBuildDir}/Debug/Kerinci.dll</library>
                         </lib>
+
+                        <!--                        <lib>-->
+                        <!--                            <name>Vulkan</name>-->
+                        <!--                            <includeDirs>-->
+                        <!--                                <includeDir>${vulkanSdk}/Include</includeDir>-->
+                        <!--                            </includeDirs>-->
+                        <!--                            <header>${vulkanSdk}/Include/vulkan/vulkan.h</header>-->
+                        <!--                            <targetPackage>ch.szclsb.kerinci.vulkan</targetPackage>-->
+                        <!--                            <library>${dllBuildDir}/Debug/Kerinci.dll</library>-->
+                        <!--                        </lib>-->
+                        <!--                        <lib>-->
+                        <!--                            <name>Glfw</name>-->
+                        <!--                            <includeDirs>-->
+                        <!--                                <includeDir>${nativeLibDir}/external/GLFW/include</includeDir>-->
+                        <!--                                <includeDir>${vulkanSdk}/Include</includeDir>-->
+                        <!--                            </includeDirs>-->
+                        <!--                            <header>${nativeLibDir}/external/GLFW/include/GLFW/glfw3.h</header>-->
+                        <!--                            <defineMacros>-->
+                        <!--                                <defineMacro>GLFW_INCLUDE_VULKAN</defineMacro>-->
+                        <!--                            </defineMacros>-->
+                        <!--                            <targetPackage>ch.szclsb.kerinci.glfw</targetPackage>-->
+                        <!--                            <library>${dllBuildDir}/Debug/Kerinci.dll</library>-->
+                        <!--                        </lib>-->
 
                         <!--                        <lib>-->
                         <!--                            <name>Vulkan</name>-->
