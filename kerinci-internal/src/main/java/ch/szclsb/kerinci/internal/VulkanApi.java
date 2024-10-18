@@ -13,15 +13,13 @@ import static ch.szclsb.kerinci.api.api_h.*;
 public class VulkanApi implements AutoCloseable {
     private final Arena arena;
     private final GlfwApi glfwApi;
-    private final MemorySegment instance;
-    private final MemorySegment surface;
+    private MemorySegment instance;
+    private MemorySegment surface;
 
     public VulkanApi(Arena arena, String applicationName, GlfwApi glfwApi) {
         this.arena = arena;
         this.glfwApi = glfwApi;
 
-        this.instance = arena.allocate(VkInstance);
-        this.surface = arena.allocate(VkSurfaceKHR);
         initVulkan(applicationName);
     }
 
@@ -40,9 +38,12 @@ public class VulkanApi implements AutoCloseable {
             VkInstanceCreateInfo.sType$set(instanceCreateInfo, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO());
             VkInstanceCreateInfo.pApplicationInfo$set(instanceCreateInfo, app);
 
-            if (krc_vkCreateInstance(instanceCreateInfo, MemorySegment.NULL, instance) != VK_SUCCESS()) {
+            var pInstance = arena.allocate(C_POINTER);
+
+            if (krc_vkCreateInstance(instanceCreateInfo, MemorySegment.NULL, pInstance) != VK_SUCCESS()) {
                 throw new RuntimeException("Failed to create instance");
             }
+            instance = pInstance.get(C_POINTER, 0);
         }
     }
 
@@ -50,13 +51,13 @@ public class VulkanApi implements AutoCloseable {
         return instance;
     }
 
-    public MemorySegment getSurface() {
-        return surface;
+    public void setSurface(MemorySegment surface) {
+        this.surface = surface;
     }
 
     @Override
     public void close() throws Exception {
-        krc_vkDestroySurfaceKHR(instance, surface, MemorySegment.NULL);
+//        krc_vkDestroySurfaceKHR(instance, surface, MemorySegment.NULL);
         krc_vkDestroyInstance(instance, MemorySegment.NULL);
     }
 }

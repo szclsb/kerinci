@@ -5,6 +5,8 @@ import ch.szclsb.kerinci.internal.VulkanApi;
 
 import java.lang.foreign.Arena;
 
+import static ch.szclsb.kerinci.api.api_h.C_POINTER;
+
 public class Example {
     public static void main(String[] args) {
         try (var arena = Arena.ofShared();
@@ -13,7 +15,9 @@ public class Example {
 
             try (var window = glfw.createWindow(500, 350, "Kerinci Example")) {
                 //fixme pointer handling: vkGetInstanceProcAddr: Invalid instance [VUID-vkGetInstanceProcAddr-instance-parameter]
-                window.createWindowSurface(vk.getInstance(), vk.getSurface());
+//                var pSurface = arena.allocate(C_POINTER);
+//                window.createWindowSurface(vk.getInstance(), pSurface);
+//                vk.setSurface(pSurface.get(C_POINTER, 0));
 
                 while (!window.shouldClose()) {
                     glfw.pollEvents();
