@@ -18,8 +18,8 @@ public class GlfwApi implements AutoCloseable {
         krc_glfwWindowHint(GLFW_RESIZABLE(), GLFW_TRUE());
     }
 
-    public Window createWindow(int width, int height, String name) {
-        return new Window(width, height, name);
+    public Window createWindow(VulkanApi vk, int width, int height, String name) {
+        return new Window(vk.getInstance(), width, height, name);
     }
 
     public void pollEvents() {

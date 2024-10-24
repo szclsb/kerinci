@@ -4,21 +4,16 @@ import ch.szclsb.kerinci.api.VkApplicationInfo;
 import ch.szclsb.kerinci.api.VkInstanceCreateInfo;
 
 import java.lang.foreign.Arena;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 
 import static ch.szclsb.kerinci.api.api_h.*;
 
 public class VulkanApi implements AutoCloseable {
     private final Arena arena;
-    private final GlfwApi glfwApi;
     private MemorySegment instance;
-    private MemorySegment surface;
 
-    public VulkanApi(Arena arena, String applicationName, GlfwApi glfwApi) {
+    public VulkanApi(Arena arena, String applicationName) {
         this.arena = arena;
-        this.glfwApi = glfwApi;
 
         initVulkan(applicationName);
     }
@@ -28,18 +23,24 @@ public class VulkanApi implements AutoCloseable {
             var engineName = localArena.allocateUtf8String("Kerinci");
             var appName = localArena.allocateUtf8String(applicationName);
 
-            var app = VkApplicationInfo.allocate(arena);
+            var app = VkApplicationInfo.allocate(localArena);
             VkApplicationInfo.sType$set(app,VK_STRUCTURE_TYPE_APPLICATION_INFO());
             VkApplicationInfo.pApplicationName$set(app, appName);
             VkApplicationInfo.pEngineName$set(app, engineName);
             VkApplicationInfo.apiVersion$set(app, VK_API_VERSION_1_1());
 
-            var instanceCreateInfo = VkInstanceCreateInfo.allocate(arena);
+            var pRequiredExtensionCount = arena.allocate(uint32_t);
+            var ppRequiredExtensions = krc_glfwGetRequiredInstanceExtensions(pRequiredExtensionCount);
+            var requiredExtensionCount = pRequiredExtensionCount.get(uint32_t, 0);
+
+            var instanceCreateInfo = VkInstanceCreateInfo.allocate(localArena);
             VkInstanceCreateInfo.sType$set(instanceCreateInfo, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO());
             VkInstanceCreateInfo.pApplicationInfo$set(instanceCreateInfo, app);
+            VkInstanceCreateInfo.enabledExtensionCount$set(instanceCreateInfo, requiredExtensionCount);
+            VkInstanceCreateInfo.ppEnabledExtensionNames$set(instanceCreateInfo, ppRequiredExtensions);
+            VkInstanceCreateInfo.pNext$set(instanceCreateInfo, MemorySegment.NULL);
 
             var pInstance = arena.allocate(C_POINTER);
-
             if (krc_vkCreateInstance(instanceCreateInfo, MemorySegment.NULL, pInstance) != VK_SUCCESS()) {
                 throw new RuntimeException("Failed to create instance");
             }
@@ -51,13 +52,8 @@ public class VulkanApi implements AutoCloseable {
         return instance;
     }
 
-    public void setSurface(MemorySegment surface) {
-        this.surface = surface;
-    }
-
     @Override
     public void close() throws Exception {
-//        krc_vkDestroySurfaceKHR(instance, surface, MemorySegment.NULL);
         krc_vkDestroyInstance(instance, MemorySegment.NULL);
     }
 }
