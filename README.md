@@ -1,7 +1,9 @@
 # Kerinci Project
 
-This is a *hobby* project aiming to provide Vulkan SDK for Java using FFM.
-For window managemant GLFW is used and for matrice/vector calculation GLM.
+This is a *hobby* project aiming to provide Vulkan SDK for Java using foreign function and memory api FFM instead of JNI.
+For window managemant [GLFW](https://github.com/glfw/glfw.git) is used and for matrice/vector calculation [GLM](https://github.com/g-truc/glm).
+
+If you want a production ready library I suggest using [LWJGL](https://www.lwjgl.org/) instead.
 
 ## Requirements
 
