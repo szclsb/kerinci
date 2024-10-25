@@ -54,29 +54,6 @@
                     <nativePath>${nativeLibDir}</nativePath>
                     <nativeBuildPath>${dllBuildDir}</nativeBuildPath>
                     <target>${nativeLibSource}</target>
-                    <!-- hack to access native functions? -->
-                    <wrappers>
-                        <wrapper>
-                            <name>api</name>
-                            <defines>
-                                <define>GLFW_INCLUDE_VULKAN</define>
-                            </defines>
-                            <includes>
-                                <include>"GLFW/glfw3.h"</include>
-                            </includes>
-                            <headerFiles>
-                                <headerFile>${project.basedir}/${nativeLibDir}/external/GLFW/include/GLFW/glfw3.h</headerFile>
-                                <headerFile>${vulkanSdk}/Include/vulkan/vulkan_core.h</headerFile>
-                            </headerFiles>
-                            <functionListPath>nativeFunctions.txt</functionListPath>
-                            <functionPrefix>krc_</functionPrefix>
-                            <excludes>
-                                <exclude>GLFWAPI </exclude>
-                                <exclude>VKAPI_ATTR </exclude>
-                                <exclude>VKAPI_CALL </exclude>
-                            </excludes>
-                        </wrapper>
-                    </wrappers>
                     <libs>
                         <lib>
                             <name>Api</name>
