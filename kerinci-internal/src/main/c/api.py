@@ -20,7 +20,7 @@ def main():
     functionsFile = open(os.path.join(args.function), 'r')
     for line in functionsFile:
         function = line.strip()
-        if function:
+        if function and not function.startswith('--'):
             print('-- ' + function)
             functions.add(function)
 

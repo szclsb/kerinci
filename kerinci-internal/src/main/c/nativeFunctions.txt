@@ -1,3 +1,4 @@
+-- GLFW
 glfwInit
 glfwTerminate
 glfwGetInstanceProcAddress
@@ -15,7 +16,41 @@ glfwWaitEvents
 glfwGetKey
 glfwGetMouseButton
 
+-- Vulkan instance
 vkCreateInstance
 vkDestroyInstance
+vkEnumerateInstanceExtensionProperties
+vkEnumerateInstanceLayerProperties
 
+-- Vulkan physical device
+vkEnumeratePhysicalDevices
+vkGetPhysicalDeviceFeatures
+vkGetPhysicalDeviceProperties
+vkGetPhysicalDeviceFormatProperties
+vkGetPhysicalDeviceQueueFamilyProperties
+vkGetPhysicalDeviceMemoryProperties
+vkEnumerateDeviceExtensionProperties
+vkEnumerateDeviceLayerProperties
+
+-- Vulkan surface
 vkDestroySurfaceKHR
+vkGetPhysicalDeviceSurfaceSupportKHR
+vkGetPhysicalDeviceSurfaceCapabilitiesKHR
+vkGetPhysicalDeviceSurfaceFormatsKHR
+vkGetPhysicalDeviceSurfacePresentModesKHR
+
+-- Vulkan logical device
+vkCreateDevice
+vkDestroyDevice
+vkGetDeviceQueue
+vkDeviceWaitIdle
+
+-- Vulkan command pool
+vkCreateCommandPool
+vkDestroyCommandPool
+vkResetCommandPool
+vkAllocateCommandBuffers
+vkFreeCommandBuffers
+vkBeginCommandBuffer
+vkEndCommandBuffer
+vkResetCommandBuffer

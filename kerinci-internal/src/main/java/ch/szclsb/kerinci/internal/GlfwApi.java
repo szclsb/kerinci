@@ -1,14 +1,10 @@
 package ch.szclsb.kerinci.internal;
 
-import java.lang.foreign.Arena;
-
 import static ch.szclsb.kerinci.api.api_h.*;
 
 public class GlfwApi implements AutoCloseable {
-    private final Arena arena;
 
-    public GlfwApi(Arena arena) {
-        this.arena = arena;
+    public GlfwApi() {
         initGlfw();
     }
 
@@ -19,7 +15,7 @@ public class GlfwApi implements AutoCloseable {
     }
 
     public Window createWindow(VulkanApi vk, int width, int height, String name) {
-        return new Window(vk.getInstance(), width, height, name);
+        return new Window(vk, width, height, name);
     }
 
     public void pollEvents() {
