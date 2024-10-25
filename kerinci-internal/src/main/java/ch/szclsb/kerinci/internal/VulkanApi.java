@@ -2,6 +2,8 @@ package ch.szclsb.kerinci.internal;
 
 import ch.szclsb.kerinci.api.VkApplicationInfo;
 import ch.szclsb.kerinci.api.VkInstanceCreateInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -9,6 +11,8 @@ import java.lang.foreign.MemorySegment;
 import static ch.szclsb.kerinci.api.api_h.*;
 
 public class VulkanApi implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(VulkanApi.class);
+
     private final Arena arena;
     private MemorySegment instance;
 
@@ -32,6 +36,12 @@ public class VulkanApi implements AutoCloseable {
             var pRequiredExtensionCount = arena.allocate(uint32_t);
             var ppRequiredExtensions = krc_glfwGetRequiredInstanceExtensions(pRequiredExtensionCount);
             var requiredExtensionCount = pRequiredExtensionCount.get(uint32_t, 0);
+
+            logger.info("required extensions:");
+            for (int i = 0; i < requiredExtensionCount; ++i) {
+                var extension = ppRequiredExtensions.get(C_POINTER, i * C_POINTER.byteSize()).getUtf8String(0);
+                logger.info(extension);
+            }
 
             var instanceCreateInfo = VkInstanceCreateInfo.allocate(localArena);
             VkInstanceCreateInfo.sType$set(instanceCreateInfo, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO());
