@@ -45,6 +45,8 @@ public class VulkanApi implements AutoCloseable {
         var ppRequiredExtensions = krc_glfwGetRequiredInstanceExtensions(pRequiredExtensionCount);
         var requiredExtensionCount = pRequiredExtensionCount.get(uint32_t, 0);
 
+        // TODO add validation layer
+
         logger.info("required extensions:");
         for (int i = 0; i < requiredExtensionCount; ++i) {
             var extension = ppRequiredExtensions.get(C_POINTER, i * C_POINTER.byteSize()).getUtf8String(0);
