@@ -1,6 +1,8 @@
 package ch.szclsb.kerinci.internal;
 
 import ch.szclsb.kerinci.api.VkCommandPoolCreateInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -12,6 +14,8 @@ import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateCommandPool;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkDestroyCommandPool;
 
 public class CommandPool implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(CommandPool.class);
+
     private final Arena arena;
     private final Device device;
     private final MemorySegment commandPool;
@@ -32,7 +36,9 @@ public class CommandPool implements AutoCloseable {
         if (krc_vkCreateCommandPool(device.getLogical(), commandPoolCreateInfo, MemorySegment.NULL, pCommandPool) != VK_SUCCESS()) {
             throw new RuntimeException("Failed to create command pool");
         }
-        return pCommandPool.get(VkCommandPool, 0);
+        var commandPool = pCommandPool.get(VkCommandPool, 0);
+        logger.debug("Created command pool @{}", commandPool.address());
+        return commandPool;
     }
 
     protected MemorySegment getCommandPool() {

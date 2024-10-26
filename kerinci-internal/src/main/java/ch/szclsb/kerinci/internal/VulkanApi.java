@@ -20,12 +20,18 @@ public class VulkanApi implements AutoCloseable {
     private final MemorySegment physicalDevice;
 
     public VulkanApi(String applicationName) {
+        this(applicationName, false);
+    }
+
+    public VulkanApi(String applicationName, boolean debug) {
         this.arena = Arena.ofConfined();
-        this.instance = initVulkan(applicationName);
+        this.instance = initVulkan(applicationName, debug);
         this.physicalDevice = pickPhysicalDevice();
     }
 
-    private MemorySegment initVulkan(String applicationName) {
+    private MemorySegment initVulkan(String applicationName, boolean debug) {
+        logger.info("debug={}", debug);
+
         var engineName = arena.allocateUtf8String("Kerinci");
         var appName = arena.allocateUtf8String(applicationName);
 
@@ -56,7 +62,9 @@ public class VulkanApi implements AutoCloseable {
         if (krc_vkCreateInstance(instanceCreateInfo, MemorySegment.NULL, pInstance) != VK_SUCCESS()) {
             throw new RuntimeException("Failed to create instance");
         }
-        return pInstance.get(VkInstance, 0);
+        var instance = pInstance.get(VkInstance, 0);
+        logger.debug("Created vulkan instance @{}", instance.address());
+        return instance;
     }
 
     private MemorySegment pickPhysicalDevice() {
@@ -66,7 +74,7 @@ public class VulkanApi implements AutoCloseable {
         var pPhysicalDevices = arena.allocate(MemoryLayout.sequenceLayout(physicalDevicesCount, VkPhysicalDevice));
         krc_vkEnumeratePhysicalDevices(instance, pPhysicalDevicesCount, pPhysicalDevices);
 
-        int selection = -1;
+        var suitablePhysicalDevice = MemorySegment.NULL;
         logger.info("physical devices:");
         var physicalDeviceProperties = arena.allocate(VkPhysicalDeviceProperties.$LAYOUT());
         for (var i = 0; i < physicalDevicesCount; ++i) {
@@ -75,16 +83,17 @@ public class VulkanApi implements AutoCloseable {
             var deviceName = VkPhysicalDeviceProperties.deviceName$slice(physicalDeviceProperties).getUtf8String(0);
 
             if (isDeviceSuitable(physicalDevice)) {
-                selection = i;
+                suitablePhysicalDevice = physicalDevice;
                 logger.info("* {}", deviceName);
             } else {
                 logger.info("  {}", deviceName);
             }
         }
-        if (selection < 0) {
+        if (suitablePhysicalDevice.address() == 0) {
             throw new RuntimeException("No suitable physical device found");
         }
-        return pPhysicalDevices.get(VkPhysicalDevice, selection * VkPhysicalDevice.byteSize());
+        logger.debug("selected physical device @{}", suitablePhysicalDevice.address());
+        return suitablePhysicalDevice;
     }
 
     private boolean isDeviceSuitable(MemorySegment physicalDevice) {

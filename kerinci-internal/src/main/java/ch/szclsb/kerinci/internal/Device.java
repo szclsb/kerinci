@@ -3,19 +3,23 @@ package ch.szclsb.kerinci.internal;
 import ch.szclsb.kerinci.api.VkDeviceCreateInfo;
 import ch.szclsb.kerinci.api.VkDeviceQueueCreateInfo;
 import ch.szclsb.kerinci.api.VkPhysicalDeviceFeatures;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static ch.szclsb.kerinci.api.api_h.C_POINTER;
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.*;
 
 public class Device implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(Device.class);
+
     private final Arena arena;
     private final VulkanApi vk;
     private final MemorySegment logical;
@@ -36,6 +40,9 @@ public class Device implements AutoCloseable {
         pQueuePriority.set(ValueLayout.JAVA_FLOAT, 0, 1.0f);
 
         var uniqueQueueFamilies = indices.getUniqueFamilies();
+        logger.debug("uniqueQueueFamilies: {}", uniqueQueueFamilies.stream()
+                .map(i -> Integer.toString(i))
+                .collect(Collectors.joining(",")));
         var queueCreateInfos = arena.allocate(MemoryLayout.sequenceLayout(uniqueQueueFamilies.size(), VkDeviceQueueCreateInfo.$LAYOUT()));
 
         var i = 0;
@@ -50,8 +57,10 @@ public class Device implements AutoCloseable {
         var physicalDeviceFeatures = arena.allocate(VkPhysicalDeviceFeatures.$LAYOUT());
         VkPhysicalDeviceFeatures.samplerAnisotropy$set(physicalDeviceFeatures, VK_TRUE());
 
+        logger.info("enabled device extensions:");
         var ppEnabledExtensionNames = arena.allocate(MemoryLayout.sequenceLayout(extensionNames.size(), C_POINTER));
         for (var j = 0; j < extensionNames.size(); ++j) {
+            logger.info("  {}", extensionNames.get(j).getUtf8String(0));
             ppEnabledExtensionNames.set(C_POINTER, j * C_POINTER.byteSize(), MemorySegment.ofAddress(extensionNames.get(j).address()));
         }
 
@@ -69,7 +78,9 @@ public class Device implements AutoCloseable {
         if (krc_vkCreateDevice(vk.getPhysicalDevice(), deviceCreateInfo, MemorySegment.NULL, pLogicalDevice) != VK_SUCCESS()) {
             throw new RuntimeException("Failed to create logical device");
         }
-        return pLogicalDevice.get(VkDevice, 0);
+        var device = pLogicalDevice.get(VkDevice, 0);
+        logger.debug("Created logical device @{}", device.address());
+        return device;
     }
 
     private MemorySegment initDeviceQueue(int queueFamilyIndex) {
