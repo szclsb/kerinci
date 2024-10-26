@@ -1,5 +1,11 @@
 package ch.szclsb.kerinci.internal;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class QueueFamilyIndices {
     int graphicsFamily;
     int presentFamily;
@@ -40,5 +46,10 @@ public class QueueFamilyIndices {
 
     public boolean isComplete() {
         return graphicsFamilyHasValue && presentFamilyHasValue;
+    }
+
+    public Set<Integer> getUniqueFamilies() {
+        return Stream.of(graphicsFamily, presentFamily)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 }

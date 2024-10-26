@@ -11,15 +11,15 @@ public class Example {
              var vk = new VulkanApi("Kerinci");
              var window = glfw.createWindow(vk, 500, 350, "Kerinci Example Window")) {
             var indices = vk.findQueueFamilies(window);
-//            try (var device = new Device(vk, indices);
-//                 var commandPool = new CommandPool(device, indices)) {
+            try (var device = new Device(vk, indices);
+                 var commandPool = new CommandPool(device, indices)) {
 
                 while (!window.shouldClose()) {
                     glfw.pollEvents();
 
                     //todo game loop
                 }
-//            }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
