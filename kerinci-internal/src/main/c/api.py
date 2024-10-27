@@ -60,42 +60,6 @@ __declspec(dllexport) {headerFunctionDefinition}""")
 }}
 """))
 
-    tmpHeaderFile.write(f"""
-__declspec(dllexport) VkResult {args.prefix}createDebugUtilsMessengerEXT(
-    VkInstance instance,
-    const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-    const VkAllocationCallbacks *pAllocator,
-    VkDebugUtilsMessengerEXT *pDebugMessenger);""")
-    tmpSourceFile.write(f"""
-VkResult {args.prefix}createDebugUtilsMessengerEXT(
-    VkInstance instance,
-    const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-    const VkAllocationCallbacks *pAllocator,
-    VkDebugUtilsMessengerEXT *pDebugMessenger) {{
-        PFN_vkCreateDebugUtilsMessengerEXT func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        if (func != NULL) {{
-            return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-        }} else {{
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }}
-}}""")
-
-    tmpHeaderFile.write(f"""
-__declspec(dllexport) void {args.prefix}destroyDebugUtilsMessengerEXT(
-    VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks *pAllocator);""")
-    tmpSourceFile.write(f"""
-void {args.prefix}destroyDebugUtilsMessengerEXT(
-    VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks *pAllocator) {{
-        PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-        if (func != NULL) {{
-            func(instance, debugMessenger, pAllocator);
-        }}
-}}""")
-
     tmpHeaderFile.close()
     tmpSourceFile.close()
 

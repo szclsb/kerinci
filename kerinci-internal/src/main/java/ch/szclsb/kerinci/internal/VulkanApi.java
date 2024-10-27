@@ -123,7 +123,12 @@ public class VulkanApi implements AutoCloseable {
         var debugCreateInfo = arena.allocate(VkDebugUtilsMessengerCreateInfoEXT.$LAYOUT());
         populateDebugMessenger(debugCreateInfo);
         var pDebugMessenger = arena.allocate(VkDebugUtilsMessengerEXT);
-        krc_createDebugUtilsMessengerEXT(instance, debugCreateInfo, MemorySegment.NULL, pDebugMessenger);
+        var functionName = arena.allocateUtf8String("vkCreateDebugUtilsMessengerEXT");
+        var function = PFN_vkCreateDebugUtilsMessengerEXT.ofAddress(
+                krc_vkGetInstanceProcAddr(instance, functionName), arena);
+        if (function.apply(instance, debugCreateInfo, MemorySegment.NULL, pDebugMessenger) != VK_SUCCESS()) {
+            throw new RuntimeException("Failed to create debug messenger");
+        }
         var debugMessenger = pDebugMessenger.get(VkDebugUtilsMessengerEXT, 0);
         logger.debug("Created debug messenger {}", printAddress(debugMessenger));
         return debugMessenger;
@@ -221,7 +226,10 @@ public class VulkanApi implements AutoCloseable {
     @Override
     public void close() throws Exception {
         if (debugMessenger != null) {
-            krc_destroyDebugUtilsMessengerEXT(instance, debugMessenger, MemorySegment.NULL);
+            var functionName = arena.allocateUtf8String("vkDestroyDebugUtilsMessengerEXT");
+            var function = PFN_vkDestroyDebugUtilsMessengerEXT.ofAddress(
+                    krc_vkGetInstanceProcAddr(instance, functionName), arena);
+            function.apply(instance, debugMessenger, MemorySegment.NULL);
         }
         krc_vkDestroyInstance(instance, MemorySegment.NULL);
         arena.close();
