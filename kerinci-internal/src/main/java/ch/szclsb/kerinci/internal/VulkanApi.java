@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import static ch.szclsb.kerinci.api.api_h.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkGetPhysicalDeviceQueueFamilyProperties;
@@ -41,23 +43,12 @@ public class VulkanApi implements AutoCloseable {
         VkApplicationInfo.pEngineName$set(app, engineName);
         VkApplicationInfo.apiVersion$set(app, VK_API_VERSION_1_1());
 
-        var pRequiredExtensionCount = arena.allocate(uint32_t);
-        var ppRequiredExtensions = krc_glfwGetRequiredInstanceExtensions(pRequiredExtensionCount);
-        var requiredExtensionCount = pRequiredExtensionCount.get(uint32_t, 0);
-
-        // TODO add validation layer
-
-        logger.info("required extensions:");
-        for (int i = 0; i < requiredExtensionCount; ++i) {
-            var extension = ppRequiredExtensions.get(C_POINTER, i * C_POINTER.byteSize()).getUtf8String(0);
-            logger.info("  {}", extension);
-        }
-
+        var requiredExtensions = getRequiredExtensions(debug);
         var instanceCreateInfo = arena.allocate(VkInstanceCreateInfo.$LAYOUT());
         VkInstanceCreateInfo.sType$set(instanceCreateInfo, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO());
         VkInstanceCreateInfo.pApplicationInfo$set(instanceCreateInfo, app);
-        VkInstanceCreateInfo.enabledExtensionCount$set(instanceCreateInfo, requiredExtensionCount);
-        VkInstanceCreateInfo.ppEnabledExtensionNames$set(instanceCreateInfo, ppRequiredExtensions);
+        VkInstanceCreateInfo.enabledExtensionCount$set(instanceCreateInfo, requiredExtensions.size());
+        VkInstanceCreateInfo.ppEnabledExtensionNames$set(instanceCreateInfo, requiredExtensions.data());
         VkInstanceCreateInfo.pNext$set(instanceCreateInfo, MemorySegment.NULL);
 
         var pInstance = arena.allocate(VkInstance);
@@ -67,6 +58,47 @@ public class VulkanApi implements AutoCloseable {
         var instance = pInstance.get(VkInstance, 0);
         logger.debug("Created vulkan instance @{}", instance.address());
         return instance;
+    }
+
+    private NativeArray getRequiredExtensions(boolean debug) {
+        var requiredExtensions = new HashSet<String>();
+        var pGlfwExtensionCount = arena.allocate(uint32_t);
+        var ppGlfwExtensions = krc_glfwGetRequiredInstanceExtensions(pGlfwExtensionCount);
+        var glfwExtensionCount = pGlfwExtensionCount.get(uint32_t, 0);
+
+        for (int i = 0; i < glfwExtensionCount; ++i) {
+            requiredExtensions.add(ppGlfwExtensions.get(C_POINTER, i * C_POINTER.byteSize()).getUtf8String(0));
+        }
+        if (debug) {
+            requiredExtensions.add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME().getUtf8String(0));
+        }
+
+        var requiredExtensionsCopy = new ArrayList<>(requiredExtensions);
+        var pInstanceExtensionCount = arena.allocate(uint32_t);
+        krc_vkEnumerateInstanceExtensionProperties(MemorySegment.NULL, pInstanceExtensionCount, MemorySegment.NULL);
+        var instanceExtensionCount = pInstanceExtensionCount.get(uint32_t, 0);
+        var ppInstanceExtensions = arena.allocate(MemoryLayout.sequenceLayout(instanceExtensionCount, VkExtensionProperties.$LAYOUT()));
+        krc_vkEnumerateInstanceExtensionProperties(MemorySegment.NULL, pInstanceExtensionCount, ppInstanceExtensions);
+        logger.info("available extensions:");
+        for (int i = 0; i < instanceExtensionCount; ++i) {
+            var extensionProperty = ppInstanceExtensions.asSlice(i * VkExtensionProperties.sizeof(), VkExtensionProperties.$LAYOUT());
+            var extensionName = VkExtensionProperties.extensionName$slice(extensionProperty).getUtf8String(0);
+            if (requiredExtensions.remove(extensionName)) {
+                logger.info("* {}", extensionName);
+            } else {
+                logger.info("  {}", extensionName);
+            }
+        }
+        if (!requiredExtensions.isEmpty()) {
+            throw new RuntimeException("Missing required extensions: " + String.join(", ", requiredExtensions));
+        }
+
+        var ppRequiredExtensions = arena.allocate(MemoryLayout.sequenceLayout(requiredExtensionsCopy.size(), C_POINTER));
+        for (int i = 0; i < requiredExtensionsCopy.size(); ++i) {
+            var extensionName = arena.allocateUtf8String(requiredExtensionsCopy.get(i));
+            ppRequiredExtensions.set(C_POINTER, i * C_POINTER.byteSize(), extensionName);
+        }
+        return new NativeArray(ppRequiredExtensions, requiredExtensionsCopy.size());
     }
 
     private MemorySegment pickPhysicalDevice() {
