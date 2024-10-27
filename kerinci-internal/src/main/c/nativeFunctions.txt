@@ -21,6 +21,7 @@ vkCreateInstance
 vkDestroyInstance
 vkEnumerateInstanceExtensionProperties
 vkEnumerateInstanceLayerProperties
+vkGetInstanceProcAddr
 
 -- Vulkan physical device
 vkEnumeratePhysicalDevices

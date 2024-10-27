@@ -12,6 +12,7 @@ import static ch.szclsb.kerinci.api.api_h_3.VK_COMMAND_POOL_CREATE_RESET_COMMAND
 import static ch.szclsb.kerinci.api.api_h_3.VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateCommandPool;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkDestroyCommandPool;
+import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class CommandPool implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(CommandPool.class);
@@ -37,7 +38,7 @@ public class CommandPool implements AutoCloseable {
             throw new RuntimeException("Failed to create command pool");
         }
         var commandPool = pCommandPool.get(VkCommandPool, 0);
-        logger.debug("Created command pool @{}", commandPool.address());
+        logger.debug("Created command pool {}", printAddress(commandPool));
         return commandPool;
     }
 

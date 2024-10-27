@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import static ch.szclsb.kerinci.api.api_h.C_POINTER;
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.*;
+import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class Device implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(Device.class);
@@ -79,7 +80,7 @@ public class Device implements AutoCloseable {
             throw new RuntimeException("Failed to create logical device");
         }
         var device = pLogicalDevice.get(VkDevice, 0);
-        logger.debug("Created logical device @{}", device.address());
+        logger.debug("Created logical device {}", printAddress(device));
         return device;
     }
 
