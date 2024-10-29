@@ -43,8 +43,12 @@ vkGetPhysicalDeviceSurfacePresentModesKHR
 -- Vulkan logical device
 vkCreateDevice
 vkDestroyDevice
-vkGetDeviceQueue
 vkDeviceWaitIdle
+
+-- Vulkan queue
+vkGetDeviceQueue
+vkQueueSubmit
+vkQueuePresentKHR
 
 -- Vulkan command pool
 vkCreateCommandPool
@@ -55,3 +59,28 @@ vkFreeCommandBuffers
 vkBeginCommandBuffer
 vkEndCommandBuffer
 vkResetCommandBuffer
+
+-- Vulkan swapchain
+vkCreateSwapchainKHR
+vkDestroySwapchainKHR
+vkCreateImageView
+vkDestroyImageView
+vkGetSwapchainImagesKHR
+vkAcquireNextImageKHR
+vkDestroyImage
+vkCreateFramebuffer
+vkDestroyFramebuffer
+
+-- Vulkan render pass
+vkCreateRenderPass
+vkDestroyRenderPass
+
+-- Vulkan semaphore
+vkCreateSemaphore
+vkDestroySemaphore
+
+-- Vulkan fence
+vkCreateFence
+vkResetFences
+vkDestroyFence
+vkWaitForFences

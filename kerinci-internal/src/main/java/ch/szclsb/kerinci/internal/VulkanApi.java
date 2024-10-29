@@ -9,11 +9,13 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 import static ch.szclsb.kerinci.api.api_h.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkGetPhysicalDeviceQueueFamilyProperties;
 import static ch.szclsb.kerinci.internal.Utils.checkFlags;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
+import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class VulkanApi implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(VulkanApi.class);
@@ -213,6 +215,10 @@ public class VulkanApi implements AutoCloseable {
         }
 
         return indices;
+    }
+
+    protected int findSupportedFormat(Set<Integer> candidates, int tiling, int flags) {
+
     }
 
     protected MemorySegment getInstance() {

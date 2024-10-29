@@ -3,6 +3,7 @@ package ch.szclsb.kerinci.internal;
 import ch.szclsb.kerinci.api.VkDeviceCreateInfo;
 import ch.szclsb.kerinci.api.VkDeviceQueueCreateInfo;
 import ch.szclsb.kerinci.api.VkPhysicalDeviceFeatures;
+import ch.szclsb.kerinci.api.VkSurfaceCapabilitiesKHR;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +12,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ch.szclsb.kerinci.api.api_h.C_POINTER;
@@ -90,6 +92,10 @@ public class Device implements AutoCloseable {
         return pQueue.get(VkQueue, 0);
     }
 
+    protected VulkanApi getVk() {
+        return vk;
+    }
+
     protected MemorySegment getLogical() {
         return logical;
     }
@@ -100,6 +106,10 @@ public class Device implements AutoCloseable {
 
     protected MemorySegment getPresentQueue() {
         return presentQueue;
+    }
+
+    public void waitIdle() {
+        krc_vkDeviceWaitIdle(logical);
     }
 
     @Override
