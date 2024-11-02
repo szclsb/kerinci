@@ -14,14 +14,14 @@ import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateCommandPool;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkDestroyCommandPool;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
-public class CommandPool implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(CommandPool.class);
+public class KrcCommandPool implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(KrcCommandPool.class);
 
     private final Arena arena;
-    private final Device device;
+    private final KrcDevice device;
     private final MemorySegment commandPool;
 
-    public CommandPool(Device device, QueueFamilyIndices indices) {
+    public KrcCommandPool(KrcDevice device, QueueFamilyIndices indices) {
         this.arena = Arena.ofConfined();
         this.device = device;
         this.commandPool = init(indices);
@@ -42,8 +42,8 @@ public class CommandPool implements AutoCloseable {
         return commandPool;
     }
 
-    protected MemorySegment getCommandPool() {
-        return commandPool;
+    public MemorySegment getCommandPool() {
+        return commandPool.asReadOnly();
     }
 
     @Override

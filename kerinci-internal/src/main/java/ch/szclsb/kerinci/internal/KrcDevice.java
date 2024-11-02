@@ -3,7 +3,6 @@ package ch.szclsb.kerinci.internal;
 import ch.szclsb.kerinci.api.VkDeviceCreateInfo;
 import ch.szclsb.kerinci.api.VkDeviceQueueCreateInfo;
 import ch.szclsb.kerinci.api.VkPhysicalDeviceFeatures;
-import ch.szclsb.kerinci.api.VkSurfaceCapabilitiesKHR;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,6 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ch.szclsb.kerinci.api.api_h.C_POINTER;
@@ -20,8 +18,8 @@ import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.*;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
-public class Device implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(Device.class);
+public class KrcDevice implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(KrcDevice.class);
 
     private final Arena arena;
     private final VulkanApi vk;
@@ -29,7 +27,7 @@ public class Device implements AutoCloseable {
     private final MemorySegment graphicQueue;
     private final MemorySegment presentQueue;
 
-    public Device(VulkanApi vk, QueueFamilyIndices indices) {
+    public KrcDevice(VulkanApi vk, QueueFamilyIndices indices) {
         this.arena = Arena.ofConfined();
         this.vk = vk;
 
@@ -96,16 +94,16 @@ public class Device implements AutoCloseable {
         return vk;
     }
 
-    protected MemorySegment getLogical() {
-        return logical;
+    public MemorySegment getLogical() {
+        return logical.asReadOnly();
     }
 
-    protected MemorySegment getGraphicQueue() {
-        return graphicQueue;
+    public MemorySegment getGraphicQueue() {
+        return graphicQueue.asReadOnly();
     }
 
-    protected MemorySegment getPresentQueue() {
-        return presentQueue;
+    public MemorySegment getPresentQueue() {
+        return presentQueue.asReadOnly();
     }
 
     public void waitIdle() {

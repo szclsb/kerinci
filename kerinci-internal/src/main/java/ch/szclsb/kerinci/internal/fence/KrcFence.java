@@ -1,19 +1,27 @@
-package ch.szclsb.kerinci.internal;
+package ch.szclsb.kerinci.internal.fence;
+
+import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.internal.KrcArray;
 
 import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_6.*;
 
 public class KrcFence implements AutoCloseable {
-    private final Device device;
+    public record CreateInfo(
+            int flags
+    ) {
+    }
+
+    private final KrcDevice device;
     private final MemorySegment vkFence;
 
-    protected KrcFence(final Device device, MemorySegment vkFence) {
+    protected KrcFence(final KrcDevice device, MemorySegment vkFence) {
         this.device = device;
         this.vkFence = vkFence;
     }
 
-    public static void reset(KrcArray<KrcFence, Device> fences) {
+    public static void reset(KrcArray<KrcFence, KrcDevice> fences) {
         krc_vkResetFences(fences.getAttachment().getLogical(), fences.length(), fences.getPointer());
     }
 
@@ -21,7 +29,7 @@ public class KrcFence implements AutoCloseable {
         krc_vkResetFences(device.getLogical(), 1, vkFence);
     }
 
-    public static void waitFor(KrcArray<KrcFence, Device> fences, boolean waitAll, long timeout) {
+    public static void waitFor(KrcArray<KrcFence, KrcDevice> fences, boolean waitAll, long timeout) {
         krc_vkWaitForFences(fences.getAttachment().getLogical(), fences.length(), fences.getPointer(),
                 waitAll ? VK_TRUE() : VK_FALSE(), timeout);
     }
@@ -30,7 +38,7 @@ public class KrcFence implements AutoCloseable {
         krc_vkWaitForFences(device.getLogical(), 1, vkFence, VK_TRUE(), timeout);
     }
 
-    protected Device getDevice() {
+    protected KrcDevice getDevice() {
         return device;
     }
 
