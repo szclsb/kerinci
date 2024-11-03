@@ -8,7 +8,7 @@ import static ch.szclsb.kerinci.api.api_h_6.*;
 
 public class KrcSemaphore implements AutoCloseable {
     public record CreateInfo(
-            int flags
+            int flags  // future use
     ) {
     }
 

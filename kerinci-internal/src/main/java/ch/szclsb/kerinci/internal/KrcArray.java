@@ -16,7 +16,7 @@ public class KrcArray<T, A> implements AutoCloseable {
     private final T[] data;
     private final A attachment;
 
-    protected KrcArray(int length, AddressLayout addressLayout, BiFunction<MemorySegment, Integer, T> creator, A attachment) {
+    public KrcArray(int length, AddressLayout addressLayout, BiFunction<MemorySegment, Integer, T> creator, A attachment) {
         this.arena = Arena.ofConfined();
         this.handles = arena.allocate(MemoryLayout.sequenceLayout(length, addressLayout));
         this.data = (T[]) new Object[length];
@@ -26,7 +26,7 @@ public class KrcArray<T, A> implements AutoCloseable {
         this.attachment = attachment;
     }
 
-    protected MemorySegment getPointer() {
+    public MemorySegment getPointer() {
         return handles.asReadOnly();
     }
 

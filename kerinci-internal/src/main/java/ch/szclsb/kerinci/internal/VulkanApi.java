@@ -217,9 +217,9 @@ public class VulkanApi implements AutoCloseable {
         return indices;
     }
 
-    protected int findSupportedFormat(Set<Integer> candidates, int tiling, int flags) {
-
-    }
+//    protected int findSupportedFormat(Set<Integer> candidates, int tiling, int flags) {
+//
+//    }
 
     protected MemorySegment getInstance() {
         return instance;

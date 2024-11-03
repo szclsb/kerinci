@@ -3,6 +3,9 @@ package ch.szclsb.kerinci.internal.semaphore;
 import ch.szclsb.kerinci.api.VkSemaphoreCreateInfo;
 import ch.szclsb.kerinci.internal.KrcDevice;
 import ch.szclsb.kerinci.internal.KrcArray;
+import ch.szclsb.kerinci.internal.fence.KrcFenceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -10,8 +13,11 @@ import java.util.List;
 
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateSemaphore;
+import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class KrcSemaphoreFactory {
+    private static final Logger logger = LoggerFactory.getLogger(KrcSemaphoreFactory.class);
+
     private KrcSemaphoreFactory() {
     }
 
@@ -25,7 +31,9 @@ public class KrcSemaphoreFactory {
         if (krc_vkCreateSemaphore(device.getLogical(), createInfoSegment, MemorySegment.NULL, handle) != VK_SUCCESS()) {
             throw new RuntimeException("failed to create fence");
         }
-        return new KrcSemaphore(device, handle.get(VkSemaphore, 0));
+        var semaphore = handle.get(VkSemaphore, 0);
+        logger.debug("Created semaphore {}", printAddress(semaphore));
+        return new KrcSemaphore(device, semaphore);
     }
 
     public static KrcSemaphore createSemaphore(KrcDevice device, KrcSemaphore.CreateInfo semaphoreCreateInfo) {

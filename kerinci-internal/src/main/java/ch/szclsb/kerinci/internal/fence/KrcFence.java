@@ -1,13 +1,31 @@
 package ch.szclsb.kerinci.internal.fence;
 
+import ch.szclsb.kerinci.internal.HasValue;
 import ch.szclsb.kerinci.internal.KrcDevice;
 import ch.szclsb.kerinci.internal.KrcArray;
 
 import java.lang.foreign.MemorySegment;
 
+import static ch.szclsb.kerinci.api.api_h_3.VK_FENCE_CREATE_SIGNALED_BIT;
 import static ch.szclsb.kerinci.api.api_h_6.*;
 
 public class KrcFence implements AutoCloseable {
+    public enum Flag implements HasValue {
+        CREATE_SIGNALED_BIT(VK_FENCE_CREATE_SIGNALED_BIT()),
+        CREATE_FLAG_BITS_MAX_ENUM(VK_FENCE_CREATE_FLAG_BITS_MAX_ENUM());
+
+        private final int value;
+
+        Flag(final int value) {
+            this.value = value;
+        }
+
+        @Override
+        public int getValue() {
+            return value;
+        }
+    }
+
     public record CreateInfo(
             int flags
     ) {

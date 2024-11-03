@@ -3,6 +3,9 @@ package ch.szclsb.kerinci.internal.fence;
 import ch.szclsb.kerinci.api.VkFenceCreateInfo;
 import ch.szclsb.kerinci.internal.KrcDevice;
 import ch.szclsb.kerinci.internal.KrcArray;
+import ch.szclsb.kerinci.internal.commands.KrcCommandPoolFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -10,8 +13,11 @@ import java.util.List;
 
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateFence;
+import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class KrcFenceFactory {
+    private static final Logger logger = LoggerFactory.getLogger(KrcFenceFactory.class);
+
     private KrcFenceFactory() {
     }
 
@@ -25,7 +31,9 @@ public class KrcFenceFactory {
         if (krc_vkCreateFence(device.getLogical(), createInfoSegment, MemorySegment.NULL, handle) != VK_SUCCESS()) {
             throw new RuntimeException("failed to create fence");
         }
-        return new KrcFence(device, handle.get(VkFence, 0));
+        var fence = handle.get(VkFence, 0);
+        logger.debug("Created fence {}", printAddress(fence));
+        return new KrcFence(device, fence);
     }
 
     public static KrcFence createFence(KrcDevice device, KrcFence.CreateInfo fenceCreateInfo) {
