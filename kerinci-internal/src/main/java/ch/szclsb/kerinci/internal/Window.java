@@ -1,9 +1,9 @@
 package ch.szclsb.kerinci.internal;
 
 
-import ch.szclsb.kerinci.api.VkExtent2D;
 import ch.szclsb.kerinci.api.VkSurfaceCapabilitiesKHR;
 import ch.szclsb.kerinci.api.VkSurfaceFormatKHR;
+import ch.szclsb.kerinci.internal.extent.KrcExtent2D;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
@@ -17,13 +17,11 @@ public class Window implements AutoCloseable {
     private final VulkanApi vk;
     private final MemorySegment handle;
     private final MemorySegment surface;
-    private int width;
-    private int height;
+    private KrcExtent2D extent;
 
     Window(VulkanApi vk, int width, int height, String name) {
         this.arena = Arena.ofConfined();
-        this.height = height;
-        this.width = width;
+        this.extent = new KrcExtent2D(width, height);
         this.vk = vk;
         var windowName = arena.allocateUtf8String(name);
 
@@ -36,22 +34,19 @@ public class Window implements AutoCloseable {
         this.surface = pVkSurfaceKHR.get(C_POINTER, 0);
     }
 
-    protected MemorySegment getHandle() {
-        return handle;
+    public MemorySegment getHandle() {
+        return handle.asReadOnly();
     }
 
-    protected MemorySegment getSurface() {
-        return surface;
+    public MemorySegment getSurface() {
+        return surface.asReadOnly();
     }
 
     public boolean shouldClose() {
         return krc_glfwWindowShouldClose(handle) == GLFW_TRUE();
     }
 
-    protected MemorySegment getExtent() {
-        var extent = arena.allocate(VkExtent2D.$LAYOUT());
-        VkExtent2D.height$set(extent, height);
-        VkExtent2D.width$set(extent, width);
+    protected KrcExtent2D getExtent() {
         return extent;
     }
 
@@ -66,10 +61,10 @@ public class Window implements AutoCloseable {
         krc_vkGetPhysicalDeviceSurfaceFormatsKHR(vk.getPhysicalDevice(), surface, pFormatCount, pFormats);
 
         var pPresentModeCount = arena.allocate(uint32_t);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(vk.getPhysicalDevice(), surface, pPresentModeCount, MemorySegment.NULL);
+        krc_vkGetPhysicalDeviceSurfacePresentModesKHR(vk.getPhysicalDevice(), surface, pPresentModeCount, MemorySegment.NULL);
         var presentModeCount = pPresentModeCount.get(uint32_t, 0);
         var pPresentModes = arena.allocate(MemoryLayout.sequenceLayout(presentModeCount, JAVA_INT));
-        vkGetPhysicalDeviceSurfacePresentModesKHR(vk.getPhysicalDevice(), surface, pPresentModeCount, pPresentModes);
+        krc_vkGetPhysicalDeviceSurfacePresentModesKHR(vk.getPhysicalDevice(), surface, pPresentModeCount, pPresentModes);
 
         return new SwapChainSupportDetails(
                 capabilities,

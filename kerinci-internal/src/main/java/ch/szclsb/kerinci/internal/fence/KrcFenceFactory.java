@@ -1,9 +1,9 @@
 package ch.szclsb.kerinci.internal.fence;
 
 import ch.szclsb.kerinci.api.VkFenceCreateInfo;
+import ch.szclsb.kerinci.internal.Allocator;
 import ch.szclsb.kerinci.internal.KrcDevice;
 import ch.szclsb.kerinci.internal.KrcArray;
-import ch.szclsb.kerinci.internal.commands.KrcCommandPoolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,22 +45,24 @@ public class KrcFenceFactory {
         }
     }
 
-    public static KrcArray<KrcFence, KrcDevice> createFences(KrcDevice device, int count, KrcFence.CreateInfo fenceCreateInfo) {
+    public static KrcArray<KrcFence> createFences(Allocator arrayAllocator,
+                                                  KrcDevice device, int count, KrcFence.CreateInfo fenceCreateInfo) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
             VkFenceCreateInfo.flags$set(createInfoSegment, fenceCreateInfo.flags());
-            return new KrcArray<>(count, VkFence, (handle, i) ->
-                    allocate(device, createInfoSegment, handle), device);
+            return new KrcArray<>(count, VkFence, arrayAllocator, (handle, i) ->
+                    allocate(device, createInfoSegment, handle));
         }
     }
 
-    public static KrcArray<KrcFence, KrcDevice> createFences(KrcDevice device, List<KrcFence.CreateInfo> fenceCreateInfos) {
+    public static KrcArray<KrcFence> createFences(Allocator arrayAllocator,
+                                                  KrcDevice device, List<KrcFence.CreateInfo> fenceCreateInfos) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = arena.allocate(VkFenceCreateInfo.$LAYOUT());
-            return new KrcArray<>(fenceCreateInfos.size(), VkFence, (handle, i) -> {
+            return new KrcArray<>(fenceCreateInfos.size(), VkFence, arrayAllocator, (handle, i) -> {
                 VkFenceCreateInfo.flags$set(createInfoSegment, fenceCreateInfos.get(i).flags());
                 return allocate(device, createInfoSegment, handle);
-            }, device);
+            });
         }
     }
 }

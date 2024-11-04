@@ -1,37 +1,31 @@
 package ch.szclsb.kerinci.internal;
 
-import java.lang.foreign.AddressLayout;
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 
 import java.util.Arrays;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import static ch.szclsb.kerinci.internal.Utils.forEachSlice;
+
 // ensures native segments are adjacent
-public class KrcArray<T, A> implements AutoCloseable {
-    private final Arena arena;
+public sealed class KrcArray<T> implements AutoCloseable permits KrcArrayExtended {
     private final MemorySegment handles;
     private final T[] data;
-    private final A attachment;
 
-    public KrcArray(int length, AddressLayout addressLayout, BiFunction<MemorySegment, Integer, T> creator, A attachment) {
-        this.arena = Arena.ofConfined();
-        this.handles = arena.allocate(MemoryLayout.sequenceLayout(length, addressLayout));
+    public KrcArray(int length, MemoryLayout memoryLayout, Allocator allocator, Creator<T> creator) {
+        this.handles = allocator.apply(MemoryLayout.sequenceLayout(length, memoryLayout));
         this.data = (T[]) new Object[length];
-        for (var i = 0; i < length; ++i) {
-            data[i] = creator.apply(handles.asSlice(i * addressLayout.byteSize(), addressLayout), i);
-        }
-        this.attachment = attachment;
+        forEachSlice(memoryLayout, handles, (slice, i) -> data[i] = creator.apply(slice, i));
+    }
+
+    protected KrcArray(KrcArray<T> other) {
+        this.handles = other.handles;
+        this.data = other.data;
     }
 
     public MemorySegment getPointer() {
         return handles.asReadOnly();
-    }
-
-    public A getAttachment() {
-        return attachment;
     }
 
     public int length() {
@@ -54,6 +48,5 @@ public class KrcArray<T, A> implements AutoCloseable {
                 ac.close();
             }
         }
-        arena.close();
     }
 }

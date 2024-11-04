@@ -1,35 +1,24 @@
 package ch.szclsb.kerinci.internal.semaphore;
 
+import ch.szclsb.kerinci.internal.AbstractKrcHandle;
 import ch.szclsb.kerinci.internal.KrcDevice;
 
 import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_6.*;
 
-public class KrcSemaphore implements AutoCloseable {
+public class KrcSemaphore extends AbstractKrcHandle {
     public record CreateInfo(
             int flags  // future use
     ) {
     }
 
-    private final KrcDevice device;
-    private final MemorySegment vkSemaphore;
-
-    protected KrcSemaphore(final KrcDevice device, MemorySegment vkSemaphore) {
-        this.device = device;
-        this.vkSemaphore = vkSemaphore;
-    }
-
-    protected KrcDevice getDevice() {
-        return device;
-    }
-
-    protected MemorySegment getVkSemaphore() {
-        return vkSemaphore;
+    protected KrcSemaphore(KrcDevice device, MemorySegment vkHandle) {
+        super(device, vkHandle);
     }
 
     @Override
     public void close() throws Exception {
-        krc_vkDestroySemaphore(device.getLogical(), vkSemaphore, MemorySegment.NULL);
+        krc_vkDestroySemaphore(device.getLogical(), vkHandle, MemorySegment.NULL);
     }
 }

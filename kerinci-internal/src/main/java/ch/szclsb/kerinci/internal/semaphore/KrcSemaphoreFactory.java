@@ -1,9 +1,9 @@
 package ch.szclsb.kerinci.internal.semaphore;
 
 import ch.szclsb.kerinci.api.VkSemaphoreCreateInfo;
+import ch.szclsb.kerinci.internal.Allocator;
 import ch.szclsb.kerinci.internal.KrcDevice;
 import ch.szclsb.kerinci.internal.KrcArray;
-import ch.szclsb.kerinci.internal.fence.KrcFenceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,22 +45,24 @@ public class KrcSemaphoreFactory {
         }
     }
 
-    public static KrcArray<KrcSemaphore, KrcDevice> createSemaphores(KrcDevice device, int count, KrcSemaphore.CreateInfo semaphoreCreateInfo) {
+    public static KrcArray<KrcSemaphore> createSemaphores(Allocator arrayAllocator, KrcDevice device,
+                                                          int count, KrcSemaphore.CreateInfo semaphoreCreateInfo) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
             VkSemaphoreCreateInfo.flags$set(createInfoSegment, semaphoreCreateInfo.flags());
-            return new KrcArray<>(count, VkSemaphore, (handle, i) ->
-                    allocate(device, createInfoSegment, handle), device);
+            return new KrcArray<>(count, VkSemaphore, arrayAllocator, (handle, i) ->
+                    allocate(device, createInfoSegment, handle));
         }
     }
 
-    public static KrcArray<KrcSemaphore, KrcDevice> createSemaphores(KrcDevice device, List<KrcSemaphore.CreateInfo> semaphoreCreateInfos) {
+    public static KrcArray<KrcSemaphore> createSemaphores(Allocator arrayAllocator, KrcDevice device,
+                                                          List<KrcSemaphore.CreateInfo> semaphoreCreateInfos) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
-            return new KrcArray<>(semaphoreCreateInfos.size(), VkSemaphore, (handle, i) -> {
+            return new KrcArray<>(semaphoreCreateInfos.size(), VkSemaphore, arrayAllocator, (handle, i) -> {
                 VkSemaphoreCreateInfo.flags$set(createInfoSegment, semaphoreCreateInfos.get(i).flags());
                 return allocate(device, createInfoSegment, handle);
-            }, device);
+            });
         }
     }
 }
