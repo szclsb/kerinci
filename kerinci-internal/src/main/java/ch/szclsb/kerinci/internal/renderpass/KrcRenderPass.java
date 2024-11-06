@@ -20,21 +20,23 @@ public class KrcRenderPass extends AbstractKrcHandle {
     }
 
     public record SubpassDependency(
-        int srcSubpass,
-        int dstSubpass,
-        int srcStageMask,
-        int dstStageMask,
-        int srcAccessMask,
-        int dstAccessMask,
-        int dependencyFlags
-    ) {}
+            int dependencyFlags,
+            int srcSubpass,
+            int srcStageMask,
+            int srcAccessMask,
+            int dstSubpass,
+            int dstStageMask,
+            int dstAccessMask
+    ) {
+    }
 
     public record CreateInfo(
             int flags,
             KrcAttachmentDescription[] attachments,
             SubpassDescription[] subpasses,
             SubpassDependency[] dependencies
-    ) {}
+    ) {
+    }
 
     protected KrcRenderPass(final KrcDevice device, MemorySegment vkHandle) {
         super(device, vkHandle);

@@ -52,11 +52,11 @@ public class KrcRenderPassFactory {
         VkAttachmentDescription.format$set(segment, description.format());
         VkAttachmentDescription.samples$set(segment, description.samples());
         VkAttachmentDescription.loadOp$set(segment, description.loadOp());
-        VkAttachmentDescription.storeOp$get(segment, description.storeOp());
+        VkAttachmentDescription.storeOp$set(segment, description.storeOp());
         VkAttachmentDescription.stencilLoadOp$set(segment, description.stencilLoadOp());
-        VkAttachmentDescription.stencilStoreOp$get(segment, description.stencilStoreOp());
+        VkAttachmentDescription.stencilStoreOp$set(segment, description.stencilStoreOp());
         VkAttachmentDescription.initialLayout$set(segment, description.initialLayout());
-        VkAttachmentDescription.finalLayout$get(segment, description.finalLayout());
+        VkAttachmentDescription.finalLayout$set(segment, description.finalLayout());
     }
 
     private static void setSubpassDescription(Allocator allocator, MemorySegment segment, KrcRenderPass.SubpassDescription subpassDescription) {

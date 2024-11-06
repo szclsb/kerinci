@@ -27,7 +27,7 @@ public class KrcCommandPool extends AbstractKrcHandle {
 
     public record CreateInfo(
             QueueFamilyIndices indices,
-            int flags
+            Flag ...flags
     ) {}
 
     protected KrcCommandPool(KrcDevice device, MemorySegment vkHandle) {

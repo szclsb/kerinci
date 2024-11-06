@@ -4,6 +4,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static ch.szclsb.kerinci.internal.Utils.forEachSlice;
@@ -13,10 +14,33 @@ public sealed class KrcArray<T> implements AutoCloseable permits KrcArrayExtende
     private final MemorySegment handles;
     private final T[] data;
 
-    public KrcArray(int length, MemoryLayout memoryLayout, Allocator allocator, Creator<T> creator) {
-        this.handles = allocator.apply(MemoryLayout.sequenceLayout(length, memoryLayout));
-        this.data = (T[]) new Object[length];
+    /**
+     *
+     * @param count
+     * @param memoryLayout
+     * @param allocator
+     * @param creator
+     */
+    public KrcArray(int count, MemoryLayout memoryLayout, Allocator allocator, Slicer<T> creator) {
+        this.handles = allocator.apply(MemoryLayout.sequenceLayout(count, memoryLayout));
+        this.data = (T[]) new Object[count];
         forEachSlice(memoryLayout, handles, (slice, i) -> data[i] = creator.apply(slice, i));
+    }
+
+    /**
+     *
+     * @param count
+     * @param memoryLayout
+     * @param allocator
+     * @param handleWriter
+     * @param creator
+     */
+    public KrcArray(int count, MemoryLayout memoryLayout, Allocator allocator,
+                    Consumer<MemorySegment> handleWriter, Slicer<T> creator) {
+        this.handles = allocator.apply(MemoryLayout.sequenceLayout(count, memoryLayout));
+        this.data = (T[]) new Object[count];
+        handleWriter.accept(handles);
+        forEachSlice(memoryLayout, handles, (slice, i) -> data[i] = creator.apply(slice.asReadOnly(), i));
     }
 
     protected KrcArray(KrcArray<T> other) {

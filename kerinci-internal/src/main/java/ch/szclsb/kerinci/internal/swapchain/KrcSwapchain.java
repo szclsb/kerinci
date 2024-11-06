@@ -1,9 +1,9 @@
 package ch.szclsb.kerinci.internal.swapchain;
 
-import ch.szclsb.kerinci.internal.AbstractKrcHandle;
-import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.internal.*;
 import ch.szclsb.kerinci.internal.extent.KrcExtent2D;
-import ch.szclsb.kerinci.internal.Window;
+import ch.szclsb.kerinci.internal.images.KrcImage;
+import ch.szclsb.kerinci.internal.images.KrcImageFactory;
 
 import java.lang.foreign.MemorySegment;
 
@@ -31,6 +31,10 @@ public class KrcSwapchain extends AbstractKrcHandle {
 
     public KrcSwapchain(KrcDevice device, MemorySegment vkHandle) {
         super(device, vkHandle);
+    }
+
+    public KrcArray<KrcImage> getSwapChainImages(Allocator allocator) {
+        return KrcImageFactory.getSwapChainImages(allocator, this);
     }
 
     @Override

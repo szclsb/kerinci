@@ -8,6 +8,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.BiConsumer;
@@ -33,10 +34,10 @@ public class Utils {
     }
 
     public static <T> void writeArrayPointer(T[] array, MemoryLayout layout, MemorySegment segment,
-                             Allocator allocator,
-                             BiConsumer<MemorySegment, T> writer,
-                             BiConsumer<MemorySegment, Integer> countSetter,
-                             BiConsumer<MemorySegment, MemorySegment> pSetter) {
+                                             Allocator allocator,
+                                             BiConsumer<MemorySegment, T> writer,
+                                             BiConsumer<MemorySegment, Integer> countSetter,
+                                             BiConsumer<MemorySegment, MemorySegment> pSetter) {
         if (array == null) {
             countSetter.accept(segment, 0);
             pSetter.accept(segment, MemorySegment.NULL);
@@ -66,24 +67,16 @@ public class Utils {
         return value ? VK_TRUE() : VK_FALSE();
     }
 
-    public static OptionalInt and(HasValue... flags) {
+//    public static OptionalInt and(HasValue... flags) {
+//        return Arrays.stream(flags)
+//                .mapToInt(HasValue::getValue)
+//                .reduce((a, b) -> a & b);
+//    }
+
+    public static <T extends HasValue> int or(T[] flags) {
         return Arrays.stream(flags)
                 .mapToInt(HasValue::getValue)
-                .reduce((a, b) -> a & b);
-    }
-
-    public static OptionalInt or(HasValue... flags) {
-        return Arrays.stream(flags)
-                .mapToInt(HasValue::getValue)
-                .reduce((a, b) -> a | b);
-    }
-
-    public static int and(int defaultValue, HasValue... flags) {
-        return and(flags).orElse(defaultValue);
-    }
-
-    public static int or(int defaultValue, HasValue... flags) {
-        return or(flags).orElse(defaultValue);
+                .reduce(0, (a, b) -> a | b);
     }
 
     public static <T> T reduceUnique(T t1, T t2) {

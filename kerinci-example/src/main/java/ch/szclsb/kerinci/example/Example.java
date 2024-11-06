@@ -10,8 +10,6 @@ import ch.szclsb.kerinci.internal.semaphore.KrcSemaphoreFactory;
 
 import java.lang.foreign.Arena;
 
-import static ch.szclsb.kerinci.internal.Utils.or;
-
 
 public class Example {
     public static void main(String[] args) {

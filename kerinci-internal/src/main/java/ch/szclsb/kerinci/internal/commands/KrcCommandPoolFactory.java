@@ -10,6 +10,7 @@ import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.*;
+import static ch.szclsb.kerinci.internal.Utils.or;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class KrcCommandPoolFactory {
@@ -34,7 +35,7 @@ public class KrcCommandPoolFactory {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
             VkCommandPoolCreateInfo.queueFamilyIndex$set(createInfoSegment, commandPoolCreateInfo.indices().getGraphicsFamily());
-            VkCommandPoolCreateInfo.flags$set(createInfoSegment, commandPoolCreateInfo.flags());
+            VkCommandPoolCreateInfo.flags$set(createInfoSegment, or(commandPoolCreateInfo.flags()));
             var handle = arena.allocate(VkCommandPool);
             return create(device, createInfoSegment, handle);
         }

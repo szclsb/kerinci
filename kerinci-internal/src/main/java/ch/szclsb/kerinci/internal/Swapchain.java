@@ -1,10 +1,14 @@
 package ch.szclsb.kerinci.internal;
 
-import ch.szclsb.kerinci.api.VkExtent2D;
 import ch.szclsb.kerinci.api.VkSurfaceCapabilitiesKHR;
 import ch.szclsb.kerinci.api.VkSurfaceFormatKHR;
 import ch.szclsb.kerinci.internal.extent.KrcExtent2D;
 import ch.szclsb.kerinci.internal.extent.KrcExtentFactory;
+import ch.szclsb.kerinci.internal.images.*;
+import ch.szclsb.kerinci.internal.renderpass.KrcAttachmentDescription;
+import ch.szclsb.kerinci.internal.renderpass.KrcAttachmentReference;
+import ch.szclsb.kerinci.internal.renderpass.KrcRenderPass;
+import ch.szclsb.kerinci.internal.renderpass.KrcRenderPassFactory;
 import ch.szclsb.kerinci.internal.swapchain.KrcSwapchain;
 import ch.szclsb.kerinci.internal.swapchain.KrcSwapchainFactory;
 import org.slf4j.Logger;
@@ -15,6 +19,7 @@ import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_2.VK_FORMAT_B8G8R8A8_UNORM;
 import static ch.szclsb.kerinci.api.api_h_4.*;
+import static ch.szclsb.kerinci.api.api_h_6.VK_SUBPASS_EXTERNAL;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Swapchain implements AutoCloseable {
@@ -26,19 +31,19 @@ public class Swapchain implements AutoCloseable {
     private KrcSwapchain swapchain;
 //    private MemorySegment oldSwapChain;
 //
-//    private int swapChainImageFormat;
+    private int swapChainImageFormat;
 //    private int swapChainDepthFormat;
 //    private MemorySegment extentSegment;
 //    private MemorySegment windowExtent;
 //
 //    private NativeArray swapChainFramebuffers;
-//    private MemorySegment renderPass;
+    private KrcRenderPass renderPass;
 //
 //    private NativeArray depthImages;
 //    private NativeArray depthImageMemorys;
 //    private NativeArray depthImageViews;
-//    private NativeArray swapChainImages;
-//    private NativeArray swapChainImageViews;
+    private KrcArray<KrcImage> swapChainImages;
+    private KrcArray<KrcImageView> swapChainImageViews;
 //
 //    private NativeArray imageAvailableSemaphores;
 //    private NativeArray renderFinishedSemaphores;
@@ -60,9 +65,10 @@ public class Swapchain implements AutoCloseable {
 ////    }
 
     private void init(KrcDevice device, Window window, QueueFamilyIndices indices) {
-        createSwapChain(device, window, indices);
-//        createImageViews();
-//        createRenderPass();
+        this.swapchain = createSwapChain(device, window, indices);
+        this.swapChainImages = swapchain.getSwapChainImages(arena::allocate);
+        this.swapChainImageViews = createImageViews();
+//        this.renderPass = createRenderPass();
 //        createDepthResources();
 //        createFramebuffers();
 //        createSyncObjects();
@@ -74,7 +80,7 @@ public class Swapchain implements AutoCloseable {
 //        ), VK_IMAGE_TILING_OPTIMAL(), VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT());
 //    }
 
-    private void createSwapChain(KrcDevice device, Window window, QueueFamilyIndices indices) {
+    private KrcSwapchain createSwapChain(KrcDevice device, Window window, QueueFamilyIndices indices) {
         var details = window.querySwapChainSupport();
 
         var format = MemorySegment.NULL;
@@ -105,7 +111,7 @@ public class Swapchain implements AutoCloseable {
             imageCount = maxImageCount;
         }
 
-//        this.swapChainImageFormat = VkSurfaceFormatKHR.format$get(format);
+        this.swapChainImageFormat = VkSurfaceFormatKHR.format$get(format);
 //        this.extentSegment = arena.allocate(VkExtent2D.$LAYOUT());
 //        KrcExtentFactory.write2D(swapchainExtend, extentSegment);
 
@@ -129,32 +135,97 @@ public class Swapchain implements AutoCloseable {
         );
         // todo old swapchain
 
-        this.swapchain = KrcSwapchainFactory.createSwapchain(device, swapChainCreateInfo);
+        return KrcSwapchainFactory.createSwapchain(device, swapChainCreateInfo);
     }
 
-//    private void createImageViews() {
-//        // we only specified a minimum number of images in the swap chain, so the implementation is
-//        // allowed to create a swap chain with more. That's why we'll first query the final number of
-//        // images with vkGetSwapchainImagesKHR, then resize the container and finally call it again to
-//        // retrieve the handles.
-//        var pEffectiveImageCount = arena.allocate(JAVA_INT);
-//        krc_vkGetSwapchainImagesKHR(device.getLogical(), swapChain, pEffectiveImageCount, MemorySegment.NULL);
-//        var effectiveImageCount = pEffectiveImageCount.get(JAVA_INT, 0);
-//        var pSwapChainImages = arena.allocate(sequenceLayout(effectiveImageCount, VkImage));
-//        krc_vkGetSwapchainImagesKHR(device.getLogical(), swapChain, pEffectiveImageCount, pSwapChainImages);
-//        this.swapChainImages = new NativeArray(pSwapChainImages, effectiveImageCount);
-//
-//        this.pImageIndex = arena.allocate(uint32_t);
-//    }
-//
-//    private void createRenderPass() {
-//
-//    }
-//
+    private KrcArray<KrcImageView> createImageViews() {
+        return KrcImageViewFactory.createImageViews(arena::allocate, device, swapChainImages.stream()
+                .map(image -> new KrcImageView.CreateInfo(
+                        0,
+                        image,
+                        KrcImageView.Type.TYPE_2D,
+                        swapChainImageFormat,
+                        null,
+                        new KrcImageSubresourceRange(
+                                VK_IMAGE_ASPECT_COLOR_BIT(),
+                                0,
+                                1,
+                                0,
+                                1
+                        )
+                ))
+                .toList());
+    }
+
+
 //    private void createDepthResources() {
 //
 //    }
 //
+
+    private KrcRenderPass createRenderPass() {
+        var colorAttachment = new KrcAttachmentDescription(
+                0,
+                swapChainImageFormat,
+                VK_SAMPLE_COUNT_1_BIT(),
+                VK_ATTACHMENT_LOAD_OP_CLEAR(),
+                VK_ATTACHMENT_STORE_OP_STORE(),
+                VK_ATTACHMENT_LOAD_OP_DONT_CARE(),
+                VK_ATTACHMENT_STORE_OP_DONT_CARE(),
+                VK_IMAGE_LAYOUT_UNDEFINED(),
+                VK_IMAGE_LAYOUT_PRESENT_SRC_KHR()
+        );
+        var depthAttachment = new KrcAttachmentDescription(
+                0,
+                0, //todo depth format
+                VK_SAMPLE_COUNT_1_BIT(),
+                VK_ATTACHMENT_LOAD_OP_CLEAR(),
+                VK_ATTACHMENT_STORE_OP_DONT_CARE(),
+                VK_ATTACHMENT_LOAD_OP_DONT_CARE(),
+                VK_ATTACHMENT_STORE_OP_DONT_CARE(),
+                VK_IMAGE_LAYOUT_UNDEFINED(),
+                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL()
+        );
+        var subpass = new KrcRenderPass.SubpassDescription(
+                0,
+                VK_PIPELINE_BIND_POINT_GRAPHICS(),
+                null,
+                new KrcAttachmentReference[]{
+                        new KrcAttachmentReference(
+                                0,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL()
+                        )
+                },
+                new KrcAttachmentReference(
+                        1,
+                        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL()
+                ),
+                null
+        );
+        var dependency = new KrcRenderPass.SubpassDependency(
+                0,
+                VK_SUBPASS_EXTERNAL(),
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT() | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT(),
+                0,
+                0,
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT() | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT(),
+                VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT() | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT()
+        );
+        return KrcRenderPassFactory.createRenderPass(device, new KrcRenderPass.CreateInfo(
+                0,
+                new KrcAttachmentDescription[] {
+                        colorAttachment,
+                        depthAttachment
+                },
+                new KrcRenderPass.SubpassDescription[]{
+                        subpass
+                },
+                new KrcRenderPass.SubpassDependency[]{
+                        dependency
+                }
+        ));
+    }
+
 //    private void createFramebuffers() {
 //
 //    }
@@ -188,6 +259,8 @@ public class Swapchain implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+//        renderPass.close();
+        swapChainImageViews.close();
         swapchain.close();
         arena.close();
     }

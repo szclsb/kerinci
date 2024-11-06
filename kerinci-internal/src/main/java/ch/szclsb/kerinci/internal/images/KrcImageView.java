@@ -12,7 +12,7 @@ import static ch.szclsb.kerinci.api.api_h_3.VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkDestroyImageView;
 
 public class KrcImageView extends AbstractKrcHandle {
-    enum Type implements HasValue {
+    public enum Type implements HasValue {
         TYPE_1D(VK_IMAGE_VIEW_TYPE_1D()),
         TYPE_2D(VK_IMAGE_VIEW_TYPE_2D()),
         TYPE_3D(VK_IMAGE_VIEW_TYPE_3D()),

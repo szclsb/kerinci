@@ -1,8 +1,6 @@
 package ch.szclsb.kerinci.internal;
 
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 // ensures native segments are adjacent
@@ -10,7 +8,7 @@ public final class KrcArrayExtended<T, E> extends KrcArray<T> {
     private final E extension;
 
     public KrcArrayExtended(int length, MemoryLayout memoryLayout,
-                            Allocator allocator, Creator<T> creator,
+                            Allocator allocator, Slicer<T> creator,
                             Function<T, E> extensionFunction) {
         super(length, memoryLayout, allocator, creator);
         this.extension = applyExtensionFunction(extensionFunction);

@@ -30,6 +30,8 @@ public class KrcImageViewFactory {
     private static void setImageViewCreateInfo(MemorySegment segment, KrcImageView.CreateInfo imageViewCreateInfo) {
         VkImageViewCreateInfo.flags$set(segment, imageViewCreateInfo.flags());
         VkImageViewCreateInfo.image$set(segment, imageViewCreateInfo.image().getVkHandle());
+        VkImageViewCreateInfo.viewType$set(segment, imageViewCreateInfo.viewType().getValue());
+        VkImageViewCreateInfo.format$set(segment, imageViewCreateInfo.format());
         if (imageViewCreateInfo.componentMapping() != null) {
             setComponentMapping(VkImageViewCreateInfo.components$slice(segment), imageViewCreateInfo.componentMapping());
         }
@@ -55,11 +57,11 @@ public class KrcImageViewFactory {
 
     private static KrcImageView create(KrcDevice device, MemorySegment createInfoSegment, MemorySegment handle) {
         if (krc_vkCreateImageView(device.getLogical(), createInfoSegment, MemorySegment.NULL, handle) != VK_SUCCESS()) {
-            throw new RuntimeException("failed to create fence");
+            throw new RuntimeException("failed to create image view");
         }
-        var semaphore = handle.get(VkImageView, 0);
-        logger.debug("Created image view {}", printAddress(semaphore));
-        return new KrcImageView(device, semaphore);
+        var imageView = handle.get(VkImageView, 0);
+        logger.debug("Created image view {}", printAddress(imageView));
+        return new KrcImageView(device, imageView);
     }
 
     public static KrcImageView createImageView(KrcDevice device, KrcImageView.CreateInfo imageViewCreateInfo) {

@@ -21,6 +21,7 @@ cmake-build-*/
 # GLSL
 *.spv
 
+*.log
 *.tmp
 **/src/main/c/*.c
 **/src/main/c/include/*.h
