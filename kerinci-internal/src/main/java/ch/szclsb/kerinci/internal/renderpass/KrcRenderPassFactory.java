@@ -44,7 +44,7 @@ public class KrcRenderPassFactory {
                 VkSubpassDependency.$LAYOUT(), segment, allocator,
                 KrcRenderPassFactory::setSubpassDependency,
                 VkRenderPassCreateInfo::dependencyCount$set,
-                VkRenderPassCreateInfo::pSubpasses$set);
+                VkRenderPassCreateInfo::pDependencies$set);
     }
 
     private static void setAttachmentDescription(MemorySegment segment, KrcAttachmentDescription description) {

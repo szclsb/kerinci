@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.util.Set;
 
 import static ch.szclsb.kerinci.api.api_h_2.VK_FORMAT_B8G8R8A8_UNORM;
 import static ch.szclsb.kerinci.api.api_h_4.*;
@@ -29,22 +30,23 @@ public class Swapchain implements AutoCloseable {
 
     private KrcDevice device;
     private KrcSwapchain swapchain;
-//    private MemorySegment oldSwapChain;
+    //    private MemorySegment oldSwapChain;
 //
     private int swapChainImageFormat;
-//    private int swapChainDepthFormat;
+    //    private int swapChainDepthFormat;
 //    private MemorySegment extentSegment;
 //    private MemorySegment windowExtent;
 //
 //    private NativeArray swapChainFramebuffers;
     private KrcRenderPass renderPass;
-//
+    //
 //    private NativeArray depthImages;
 //    private NativeArray depthImageMemorys;
 //    private NativeArray depthImageViews;
     private KrcArray<KrcImage> swapChainImages;
     private KrcArray<KrcImageView> swapChainImageViews;
-//
+
+    //
 //    private NativeArray imageAvailableSemaphores;
 //    private NativeArray renderFinishedSemaphores;
 //    private NativeArray inFlightFences;
@@ -68,7 +70,7 @@ public class Swapchain implements AutoCloseable {
         this.swapchain = createSwapChain(device, window, indices);
         this.swapChainImages = swapchain.getSwapChainImages(arena::allocate);
         this.swapChainImageViews = createImageViews();
-//        this.renderPass = createRenderPass();
+        this.renderPass = createRenderPass();
 //        createDepthResources();
 //        createFramebuffers();
 //        createSyncObjects();
@@ -126,7 +128,7 @@ public class Swapchain implements AutoCloseable {
                 1,
                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT(),
                 exclusive ? VK_SHARING_MODE_EXCLUSIVE() : VK_SHARING_MODE_CONCURRENT(),
-                exclusive ? null : new Integer[] {indices.graphicsFamily, indices.presentFamily},
+                exclusive ? null : new Integer[]{indices.graphicsFamily, indices.presentFamily},
                 VkSurfaceCapabilitiesKHR.currentTransform$get(details.capabilities()),
                 VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR(),
                 presentMode,
@@ -175,9 +177,14 @@ public class Swapchain implements AutoCloseable {
                 VK_IMAGE_LAYOUT_UNDEFINED(),
                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR()
         );
+        var depthFormat = device.getVk().findSupportedFormat(new int[]{
+                VK_FORMAT_D32_SFLOAT(),
+                VK_FORMAT_D32_SFLOAT_S8_UINT(),
+                VK_FORMAT_D24_UNORM_S8_UINT()
+        }, KrcImageTiling.OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT());
         var depthAttachment = new KrcAttachmentDescription(
                 0,
-                0, //todo depth format
+                depthFormat,
                 VK_SAMPLE_COUNT_1_BIT(),
                 VK_ATTACHMENT_LOAD_OP_CLEAR(),
                 VK_ATTACHMENT_STORE_OP_DONT_CARE(),
@@ -213,7 +220,7 @@ public class Swapchain implements AutoCloseable {
         );
         return KrcRenderPassFactory.createRenderPass(device, new KrcRenderPass.CreateInfo(
                 0,
-                new KrcAttachmentDescription[] {
+                new KrcAttachmentDescription[]{
                         colorAttachment,
                         depthAttachment
                 },
@@ -259,7 +266,7 @@ public class Swapchain implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-//        renderPass.close();
+        renderPass.close();
         swapChainImageViews.close();
         swapchain.close();
         arena.close();

@@ -217,9 +217,21 @@ public class VulkanApi implements AutoCloseable {
         return indices;
     }
 
-//    protected int findSupportedFormat(Set<Integer> candidates, int tiling, int flags) {
-//
-//    }
+    protected int findSupportedFormat(int[] candidates, KrcImageTiling tiling, int features) {
+        try (var localArena = Arena.ofConfined()) {
+            var props = localArena.allocate(VkFormatProperties.$LAYOUT());
+            for (var format : candidates) {
+                krc_vkGetPhysicalDeviceFormatProperties(physicalDevice, format, props);
+
+                if ((tiling == KrcImageTiling.LINEAR && (VkFormatProperties.linearTilingFeatures$get(props) & features) == features)
+                        || (tiling == KrcImageTiling.OPTIMAL && (VkFormatProperties.optimalTilingFeatures$get(props) & features) == features)) {
+                    return format;
+                }
+            }
+            throw new RuntimeException("failed to find supported format");
+        }
+
+    }
 
     protected MemorySegment getInstance() {
         return instance;
