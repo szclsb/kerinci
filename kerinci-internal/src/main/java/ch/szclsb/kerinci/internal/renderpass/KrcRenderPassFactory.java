@@ -3,6 +3,8 @@ package ch.szclsb.kerinci.internal.renderpass;
 import ch.szclsb.kerinci.api.*;
 import ch.szclsb.kerinci.internal.Allocator;
 import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.internal.attachment.KrcAttachmentDescription;
+import ch.szclsb.kerinci.internal.attachment.KrcAttachmentReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +51,7 @@ public class KrcRenderPassFactory {
 
     private static void setAttachmentDescription(MemorySegment segment, KrcAttachmentDescription description) {
         VkAttachmentDescription.flags$set(segment, description.flags());
-        VkAttachmentDescription.format$set(segment, description.format());
+        VkAttachmentDescription.format$set(segment, description.format().getValue());
         VkAttachmentDescription.samples$set(segment, description.samples());
         VkAttachmentDescription.loadOp$set(segment, description.loadOp());
         VkAttachmentDescription.storeOp$set(segment, description.storeOp());

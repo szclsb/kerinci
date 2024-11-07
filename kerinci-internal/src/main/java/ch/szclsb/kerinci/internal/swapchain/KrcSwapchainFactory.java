@@ -34,7 +34,7 @@ public class KrcSwapchainFactory  {
         VkSwapchainCreateInfoKHR.minImageCount$set(segment, createInfo.minImageCount());
         VkSwapchainCreateInfoKHR.imageFormat$set(segment, createInfo.imageFormat());
         VkSwapchainCreateInfoKHR.imageColorSpace$set(segment, createInfo.imageColorSpace());
-        write2D(createInfo.imageExtent(), VkSwapchainCreateInfoKHR.imageExtent$slice(segment));
+        write2D(VkSwapchainCreateInfoKHR.imageExtent$slice(segment), createInfo.imageExtent());
         VkSwapchainCreateInfoKHR.imageArrayLayers$set(segment, createInfo.imageArrayLayers());
         VkSwapchainCreateInfoKHR.imageUsage$set(segment, createInfo.imageUsage());
         VkSwapchainCreateInfoKHR.imageSharingMode$set(segment, createInfo.imageSharingMode());

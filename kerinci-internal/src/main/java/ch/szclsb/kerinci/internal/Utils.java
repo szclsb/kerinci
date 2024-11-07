@@ -7,12 +7,10 @@ import java.lang.foreign.AddressLayout;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ch.szclsb.kerinci.api.api_h_6.VK_FALSE;
 import static ch.szclsb.kerinci.api.api_h_6.VK_TRUE;
@@ -73,7 +71,17 @@ public class Utils {
 //                .reduce((a, b) -> a & b);
 //    }
 
-    public static <T extends HasValue> int or(T[] flags) {
+    // todo cache values?
+    public static <T extends HasValue> T from(int value, Class<T> enumClass) {
+        for(var t : enumClass.getEnumConstants()) {
+            if (t.getValue() == value) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    public static <T extends Flag> int or(T[] flags) {
         return Arrays.stream(flags)
                 .mapToInt(HasValue::getValue)
                 .reduce(0, (a, b) -> a | b);

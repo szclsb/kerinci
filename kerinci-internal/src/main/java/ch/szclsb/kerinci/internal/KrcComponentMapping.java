@@ -1,4 +1,4 @@
-package ch.szclsb.kerinci.internal.images;
+package ch.szclsb.kerinci.internal;
 
 public record KrcComponentMapping(
         int r,

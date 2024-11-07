@@ -1,8 +1,10 @@
-package ch.szclsb.kerinci.internal.renderpass;
+package ch.szclsb.kerinci.internal.attachment;
+
+import ch.szclsb.kerinci.internal.KrcFormat;
 
 public record KrcAttachmentDescription(
         int flags,
-        int format,
+        KrcFormat format,
         int samples,
         int loadOp,
         int storeOp,

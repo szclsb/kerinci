@@ -1,9 +1,11 @@
-package ch.szclsb.kerinci.internal.images;
+package ch.szclsb.kerinci.internal.imageview;
 
 import ch.szclsb.kerinci.api.*;
 import ch.szclsb.kerinci.internal.Allocator;
 import ch.szclsb.kerinci.internal.KrcArray;
 import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.internal.KrcComponentMapping;
+import ch.szclsb.kerinci.internal.images.KrcImageSubresourceRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +23,8 @@ public class KrcImageViewFactory {
     private KrcImageViewFactory() {
     }
 
-    private static MemorySegment allocateCreateInfo(Arena arena) {
-        var createInfoSegment = arena.allocate(VkImageViewCreateInfo.$LAYOUT());
+    private static MemorySegment allocateCreateInfo(Allocator allocator) {
+        var createInfoSegment = allocator.apply(VkImageViewCreateInfo.$LAYOUT());
         VkImageViewCreateInfo.sType$set(createInfoSegment, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO());
         return createInfoSegment;
     }
@@ -31,7 +33,7 @@ public class KrcImageViewFactory {
         VkImageViewCreateInfo.flags$set(segment, imageViewCreateInfo.flags());
         VkImageViewCreateInfo.image$set(segment, imageViewCreateInfo.image().getVkHandle());
         VkImageViewCreateInfo.viewType$set(segment, imageViewCreateInfo.viewType().getValue());
-        VkImageViewCreateInfo.format$set(segment, imageViewCreateInfo.format());
+        VkImageViewCreateInfo.format$set(segment, imageViewCreateInfo.format().getValue());
         if (imageViewCreateInfo.componentMapping() != null) {
             setComponentMapping(VkImageViewCreateInfo.components$slice(segment), imageViewCreateInfo.componentMapping());
         }
@@ -66,25 +68,25 @@ public class KrcImageViewFactory {
 
     public static KrcImageView createImageView(KrcDevice device, KrcImageView.CreateInfo imageViewCreateInfo) {
         try (var arena = Arena.ofConfined()) {
-            var createInfoSegment = allocateCreateInfo(arena);
+            var createInfoSegment = allocateCreateInfo(arena::allocate);
             setImageViewCreateInfo(createInfoSegment, imageViewCreateInfo);
             var handle = arena.allocate(VkImageView);
             return create(device, createInfoSegment, handle);
         }
     }
 
-    public static KrcArray<KrcImageView> createImageViews(Allocator arrayAllocator, KrcDevice device, int count, KrcImageView.CreateInfo imageViewCreateInfo) {
+    public static KrcArray<KrcImageView> createImageViewArray(Allocator arrayAllocator, KrcDevice device, int count, KrcImageView.CreateInfo imageViewCreateInfo) {
         try (var arena = Arena.ofConfined()) {
-            var createInfoSegment = allocateCreateInfo(arena);
+            var createInfoSegment = allocateCreateInfo(arena::allocate);
             setImageViewCreateInfo(createInfoSegment, imageViewCreateInfo);
-            return new KrcArray<>(count, VkImageView, arrayAllocator, (handle, i) ->
+            return new KrcArray<>(count, VkImageView, arrayAllocator, (handle, _) ->
                     create(device, createInfoSegment, handle));
         }
     }
 
-    public static KrcArray<KrcImageView> createImageViews(Allocator arrayAllocator, KrcDevice device, List<KrcImageView.CreateInfo> imageViewCreateInfos) {
+    public static KrcArray<KrcImageView> createImageViewArray(Allocator arrayAllocator, KrcDevice device, List<KrcImageView.CreateInfo> imageViewCreateInfos) {
         try (var arena = Arena.ofConfined()) {
-            var createInfoSegment = allocateCreateInfo(arena);
+            var createInfoSegment = allocateCreateInfo(arena::allocate);
             return new KrcArray<>(imageViewCreateInfos.size(), VkImageView, arrayAllocator, (handle, i) -> {
                 setImageViewCreateInfo(createInfoSegment, imageViewCreateInfos.get(i));
                 return create(device, createInfoSegment, handle);

@@ -2,6 +2,8 @@ package ch.szclsb.kerinci.internal.renderpass;
 
 import ch.szclsb.kerinci.internal.AbstractKrcHandle;
 import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.internal.attachment.KrcAttachmentDescription;
+import ch.szclsb.kerinci.internal.attachment.KrcAttachmentReference;
 
 import java.lang.foreign.MemorySegment;
 

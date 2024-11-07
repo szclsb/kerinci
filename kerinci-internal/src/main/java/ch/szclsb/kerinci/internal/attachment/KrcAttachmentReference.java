@@ -1,4 +1,4 @@
-package ch.szclsb.kerinci.internal.renderpass;
+package ch.szclsb.kerinci.internal.attachment;
 
 public record KrcAttachmentReference(
         int attachment,

@@ -45,8 +45,8 @@ public class KrcSemaphoreFactory {
         }
     }
 
-    public static KrcArray<KrcSemaphore> createSemaphores(Allocator arrayAllocator, KrcDevice device,
-                                                          int count, KrcSemaphore.CreateInfo semaphoreCreateInfo) {
+    public static KrcArray<KrcSemaphore> createSemaphoreArray(Allocator arrayAllocator, KrcDevice device,
+                                                              int count, KrcSemaphore.CreateInfo semaphoreCreateInfo) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
             VkSemaphoreCreateInfo.flags$set(createInfoSegment, semaphoreCreateInfo.flags());
@@ -55,8 +55,8 @@ public class KrcSemaphoreFactory {
         }
     }
 
-    public static KrcArray<KrcSemaphore> createSemaphores(Allocator arrayAllocator, KrcDevice device,
-                                                          List<KrcSemaphore.CreateInfo> semaphoreCreateInfos) {
+    public static KrcArray<KrcSemaphore> createSemaphoreArray(Allocator arrayAllocator, KrcDevice device,
+                                                              List<KrcSemaphore.CreateInfo> semaphoreCreateInfos) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
             return new KrcArray<>(semaphoreCreateInfos.size(), VkSemaphore, arrayAllocator, (handle, i) -> {

@@ -1,6 +1,8 @@
 package ch.szclsb.kerinci.internal;
 
 import ch.szclsb.kerinci.api.*;
+import ch.szclsb.kerinci.internal.images.KrcImageTiling;
+import ch.szclsb.kerinci.internal.memory.KrcMemoryPropertyFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,13 +11,10 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 
 import static ch.szclsb.kerinci.api.api_h.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkGetPhysicalDeviceQueueFamilyProperties;
-import static ch.szclsb.kerinci.internal.Utils.checkFlags;
-import static ch.szclsb.kerinci.internal.Utils.printAddress;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
+import static ch.szclsb.kerinci.internal.Utils.*;
 
 public class VulkanApi implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(VulkanApi.class);
@@ -217,20 +216,37 @@ public class VulkanApi implements AutoCloseable {
         return indices;
     }
 
-    protected int findSupportedFormat(int[] candidates, KrcImageTiling tiling, int features) {
+    protected KrcFormat findSupportedFormat(KrcFormat[] candidates, KrcImageTiling tiling, KrcFormatFeatureFlag ...features) {
+        var f = or(features);
         try (var localArena = Arena.ofConfined()) {
             var props = localArena.allocate(VkFormatProperties.$LAYOUT());
             for (var format : candidates) {
-                krc_vkGetPhysicalDeviceFormatProperties(physicalDevice, format, props);
+                krc_vkGetPhysicalDeviceFormatProperties(physicalDevice, format.getValue(), props);
 
-                if ((tiling == KrcImageTiling.LINEAR && (VkFormatProperties.linearTilingFeatures$get(props) & features) == features)
-                        || (tiling == KrcImageTiling.OPTIMAL && (VkFormatProperties.optimalTilingFeatures$get(props) & features) == features)) {
+                if ((tiling == KrcImageTiling.LINEAR && (VkFormatProperties.linearTilingFeatures$get(props) & f) == f)
+                        || (tiling == KrcImageTiling.OPTIMAL && (VkFormatProperties.optimalTilingFeatures$get(props) & f) == f)) {
                     return format;
                 }
             }
             throw new RuntimeException("failed to find supported format");
         }
+    }
 
+    protected int findMemoryType(int typeFilter, KrcMemoryPropertyFlags ...propertyFlags) {
+        var f = or(propertyFlags);
+        try (var localArena = Arena.ofConfined()) {
+            var props = localArena.allocate(VkPhysicalDeviceMemoryProperties.$LAYOUT());
+            krc_vkGetPhysicalDeviceMemoryProperties(physicalDevice, props);
+            var typeCount = VkPhysicalDeviceMemoryProperties.memoryTypeCount$get(props);
+            var memoryTypes = VkPhysicalDeviceMemoryProperties.memoryTypes$slice(props);
+            for (var i = 0; i < typeCount; i++) {
+                var pf = VkMemoryType.propertyFlags$get(memoryTypes, i);
+                if ((typeFilter & (1 << i)) > 0 && (pf & f) == f) {
+                    return i;
+                }
+            }
+            throw new RuntimeException("failed to find memory type");
+        }
     }
 
     protected MemorySegment getInstance() {

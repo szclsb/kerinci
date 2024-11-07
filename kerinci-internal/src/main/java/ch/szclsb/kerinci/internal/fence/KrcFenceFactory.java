@@ -13,6 +13,7 @@ import java.util.List;
 
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateFence;
+import static ch.szclsb.kerinci.internal.Utils.or;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class KrcFenceFactory {
@@ -39,28 +40,28 @@ public class KrcFenceFactory {
     public static KrcFence createFence(KrcDevice device, KrcFence.CreateInfo fenceCreateInfo) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
-            VkFenceCreateInfo.flags$set(createInfoSegment, fenceCreateInfo.flags());
+            VkFenceCreateInfo.flags$set(createInfoSegment, or(fenceCreateInfo.flags()));
             var handle = arena.allocate(VkFence);
             return allocate(device, createInfoSegment, handle);
         }
     }
 
-    public static KrcArray<KrcFence> createFences(Allocator arrayAllocator,
-                                                  KrcDevice device, int count, KrcFence.CreateInfo fenceCreateInfo) {
+    public static KrcArray<KrcFence> createFenceArray(Allocator arrayAllocator,
+                                                      KrcDevice device, int count, KrcFence.CreateInfo fenceCreateInfo) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = allocateCreateInfo(arena);
-            VkFenceCreateInfo.flags$set(createInfoSegment, fenceCreateInfo.flags());
+            VkFenceCreateInfo.flags$set(createInfoSegment, or(fenceCreateInfo.flags()));
             return new KrcArray<>(count, VkFence, arrayAllocator, (handle, i) ->
                     allocate(device, createInfoSegment, handle));
         }
     }
 
-    public static KrcArray<KrcFence> createFences(Allocator arrayAllocator,
-                                                  KrcDevice device, List<KrcFence.CreateInfo> fenceCreateInfos) {
+    public static KrcArray<KrcFence> createFenceArray(Allocator arrayAllocator,
+                                                      KrcDevice device, List<KrcFence.CreateInfo> fenceCreateInfos) {
         try (var arena = Arena.ofConfined()) {
             var createInfoSegment = arena.allocate(VkFenceCreateInfo.$LAYOUT());
             return new KrcArray<>(fenceCreateInfos.size(), VkFence, arrayAllocator, (handle, i) -> {
-                VkFenceCreateInfo.flags$set(createInfoSegment, fenceCreateInfos.get(i).flags());
+                VkFenceCreateInfo.flags$set(createInfoSegment, or(fenceCreateInfos.get(i).flags()));
                 return allocate(device, createInfoSegment, handle);
             });
         }

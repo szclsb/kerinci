@@ -45,6 +45,10 @@ vkCreateDevice
 vkDestroyDevice
 vkDeviceWaitIdle
 
+-- Vulkan memory
+vkAllocateMemory
+vkFreeMemory
+
 -- Vulkan queue
 vkGetDeviceQueue
 vkQueueSubmit
@@ -63,11 +67,20 @@ vkResetCommandBuffer
 -- Vulkan swapchain
 vkCreateSwapchainKHR
 vkDestroySwapchainKHR
-vkCreateImageView
-vkDestroyImageView
 vkGetSwapchainImagesKHR
 vkAcquireNextImageKHR
+
+-- Vulkan image
+vkCreateImage
+vkGetImageMemoryRequirements
+vkBindImageMemory
 vkDestroyImage
+
+-- Vulkan image view
+vkCreateImageView
+vkDestroyImageView
+
+-- Vulkan framebuffer
 vkCreateFramebuffer
 vkDestroyFramebuffer
 

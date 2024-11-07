@@ -3,10 +3,16 @@ package ch.szclsb.kerinci.internal;
 import ch.szclsb.kerinci.api.VkSurfaceCapabilitiesKHR;
 import ch.szclsb.kerinci.api.VkSurfaceFormatKHR;
 import ch.szclsb.kerinci.internal.extent.KrcExtent2D;
+import ch.szclsb.kerinci.internal.extent.KrcExtent3D;
 import ch.szclsb.kerinci.internal.extent.KrcExtentFactory;
 import ch.szclsb.kerinci.internal.images.*;
-import ch.szclsb.kerinci.internal.renderpass.KrcAttachmentDescription;
-import ch.szclsb.kerinci.internal.renderpass.KrcAttachmentReference;
+import ch.szclsb.kerinci.internal.imageview.KrcImageView;
+import ch.szclsb.kerinci.internal.imageview.KrcImageViewFactory;
+import ch.szclsb.kerinci.internal.attachment.KrcAttachmentDescription;
+import ch.szclsb.kerinci.internal.attachment.KrcAttachmentReference;
+import ch.szclsb.kerinci.internal.memory.KrcDeviceMemory;
+import ch.szclsb.kerinci.internal.memory.KrcDeviceMemoryAllocator;
+import ch.szclsb.kerinci.internal.memory.KrcMemoryPropertyFlags;
 import ch.szclsb.kerinci.internal.renderpass.KrcRenderPass;
 import ch.szclsb.kerinci.internal.renderpass.KrcRenderPassFactory;
 import ch.szclsb.kerinci.internal.swapchain.KrcSwapchain;
@@ -16,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.util.Set;
 
 import static ch.szclsb.kerinci.api.api_h_2.VK_FORMAT_B8G8R8A8_UNORM;
 import static ch.szclsb.kerinci.api.api_h_4.*;
 import static ch.szclsb.kerinci.api.api_h_6.VK_SUBPASS_EXTERNAL;
+import static ch.szclsb.kerinci.internal.Utils.from;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Swapchain implements AutoCloseable {
@@ -32,19 +38,19 @@ public class Swapchain implements AutoCloseable {
     private KrcSwapchain swapchain;
     //    private MemorySegment oldSwapChain;
 //
-    private int swapChainImageFormat;
-    //    private int swapChainDepthFormat;
-//    private MemorySegment extentSegment;
-//    private MemorySegment windowExtent;
-//
+    private KrcExtent2D swapchainExtend;
+    private KrcFormat swapChainImageFormat;
+    private KrcFormat depthFormat;
+    //
 //    private NativeArray swapChainFramebuffers;
     private KrcRenderPass renderPass;
-    //
-//    private NativeArray depthImages;
-//    private NativeArray depthImageMemorys;
-//    private NativeArray depthImageViews;
+
+    //    private NativeArray depthImageMemorys;
     private KrcArray<KrcImage> swapChainImages;
     private KrcArray<KrcImageView> swapChainImageViews;
+    private KrcArray<KrcImage> depthImages;
+    private KrcArray<KrcDeviceMemory> depthImageMemory;
+    private KrcArray<KrcImageView> depthImageViews;
 
     //
 //    private NativeArray imageAvailableSemaphores;
@@ -70,8 +76,10 @@ public class Swapchain implements AutoCloseable {
         this.swapchain = createSwapChain(device, window, indices);
         this.swapChainImages = swapchain.getSwapChainImages(arena::allocate);
         this.swapChainImageViews = createImageViews();
+        this.depthImages = createDepthImages();
+        this.depthImageMemory = bindDepthImages();
+        this.depthImageViews = createDepthImageViews();
         this.renderPass = createRenderPass();
-//        createDepthResources();
 //        createFramebuffers();
 //        createSyncObjects();
     }
@@ -101,7 +109,7 @@ public class Swapchain implements AutoCloseable {
             }
         }
 
-        var swapchainExtend = KrcExtent2D.cap(
+        this.swapchainExtend = KrcExtent2D.cap(
                 window.getExtent(),
                 KrcExtentFactory.read2D(VkSurfaceCapabilitiesKHR.minImageExtent$slice(details.capabilities())),
                 KrcExtentFactory.read2D(VkSurfaceCapabilitiesKHR.maxImageExtent$slice(details.capabilities()))
@@ -113,7 +121,7 @@ public class Swapchain implements AutoCloseable {
             imageCount = maxImageCount;
         }
 
-        this.swapChainImageFormat = VkSurfaceFormatKHR.format$get(format);
+        this.swapChainImageFormat = from(VkSurfaceFormatKHR.format$get(format), KrcFormat.class);
 //        this.extentSegment = arena.allocate(VkExtent2D.$LAYOUT());
 //        KrcExtentFactory.write2D(swapchainExtend, extentSegment);
 
@@ -141,29 +149,97 @@ public class Swapchain implements AutoCloseable {
     }
 
     private KrcArray<KrcImageView> createImageViews() {
-        return KrcImageViewFactory.createImageViews(arena::allocate, device, swapChainImages.stream()
+        var subresource = new KrcImageSubresourceRange(
+                VK_IMAGE_ASPECT_COLOR_BIT(),
+                0,
+                1,
+                0,
+                1
+        );
+        return KrcImageViewFactory.createImageViewArray(arena::allocate, device, swapChainImages.stream()
                 .map(image -> new KrcImageView.CreateInfo(
                         0,
                         image,
-                        KrcImageView.Type.TYPE_2D,
+                        KrcImageType.TYPE_2D,
                         swapChainImageFormat,
                         null,
-                        new KrcImageSubresourceRange(
-                                VK_IMAGE_ASPECT_COLOR_BIT(),
-                                0,
-                                1,
-                                0,
-                                1
-                        )
+                        subresource
                 ))
                 .toList());
     }
 
 
-//    private void createDepthResources() {
-//
-//    }
-//
+    private KrcArray<KrcImage> createDepthImages() {
+        this.depthFormat = device.getVk().findSupportedFormat(new KrcFormat[]{
+                KrcFormat.D32_SFLOAT,
+                KrcFormat.D32_SFLOAT_S8_UINT,
+                KrcFormat.D24_UNORM_S8_UINT
+        }, KrcImageTiling.OPTIMAL, KrcFormatFeatureFlag.DEPTH_STENCIL_ATTACHMENT_BIT);
+        var imageCount = swapChainImages.length();
+        var imageCreateInfo = new KrcImage.CreateInfo(
+                0,
+                KrcImageType.TYPE_2D,
+                depthFormat,
+                new KrcExtent3D(
+                        swapchainExtend.width(),
+                        swapchainExtend.height(),
+                        1
+                ),
+                1,
+                1,
+                new KrcSampleCountFlag[]{
+                        KrcSampleCountFlag.BIT_1
+                },
+                KrcImageTiling.OPTIMAL,
+                new KrcImageUsageFlags[]{
+                        KrcImageUsageFlags.DEPTH_STENCIL_ATTACHMENT_BIT
+                },
+                KrcSharingMode.EXCLUSIVE,
+                null,
+                KrcImageLayout.UNDEFINED
+        );
+        return KrcImageFactory.createImageArray(arena::allocate, device, imageCount, imageCreateInfo);
+    }
+
+    private KrcArray<KrcDeviceMemory> bindDepthImages() {
+        var memoryArray = KrcDeviceMemoryAllocator.allocateArray(arena::allocate, device, depthImages.stream()
+                .map(image -> {
+                    var requirements = image.getMemoryRequirement();
+                    return new KrcDeviceMemory.AllocateInfo(
+                            requirements.size(),
+                            device.getVk().findMemoryType(requirements.memoryTypeBits(),
+                                    KrcMemoryPropertyFlags.DEVICE_LOCAL_BIT)
+                    );
+                })
+                .toList());
+        for (var i = 0; i < depthImages.length(); i++) {
+            var image = depthImages.get(i);
+            var memory = memoryArray.get(i);
+            image.bindMemory(memory);
+        }
+        return memoryArray;
+    }
+
+    private KrcArray<KrcImageView> createDepthImageViews() {
+        var subresource = new KrcImageSubresourceRange(
+                VK_IMAGE_ASPECT_DEPTH_BIT(),
+                0,
+                1,
+                0,
+                1
+        );
+        return KrcImageViewFactory.createImageViewArray(arena::allocate, device, depthImages.stream()
+                .map(image -> new KrcImageView.CreateInfo(
+                        0,
+                        image,
+                        KrcImageType.TYPE_2D,
+                        depthFormat,
+                        null,
+                        subresource
+                ))
+                .toList());
+    }
+
 
     private KrcRenderPass createRenderPass() {
         var colorAttachment = new KrcAttachmentDescription(
@@ -177,11 +253,6 @@ public class Swapchain implements AutoCloseable {
                 VK_IMAGE_LAYOUT_UNDEFINED(),
                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR()
         );
-        var depthFormat = device.getVk().findSupportedFormat(new int[]{
-                VK_FORMAT_D32_SFLOAT(),
-                VK_FORMAT_D32_SFLOAT_S8_UINT(),
-                VK_FORMAT_D24_UNORM_S8_UINT()
-        }, KrcImageTiling.OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT());
         var depthAttachment = new KrcAttachmentDescription(
                 0,
                 depthFormat,
@@ -267,6 +338,9 @@ public class Swapchain implements AutoCloseable {
     @Override
     public void close() throws Exception {
         renderPass.close();
+        depthImageViews.close();
+        depthImageMemory.close();
+        depthImages.close();
         swapChainImageViews.close();
         swapchain.close();
         arena.close();

@@ -1,23 +1,19 @@
 package ch.szclsb.kerinci.internal.fence;
 
-import ch.szclsb.kerinci.internal.AbstractKrcHandle;
-import ch.szclsb.kerinci.internal.HasValue;
-import ch.szclsb.kerinci.internal.KrcArrayExtended;
-import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.internal.*;
 
 import java.lang.foreign.MemorySegment;
 
-import static ch.szclsb.kerinci.api.api_h_3.VK_FENCE_CREATE_SIGNALED_BIT;
 import static ch.szclsb.kerinci.api.api_h_6.*;
 
 public class KrcFence extends AbstractKrcHandle {
-    public enum Flag implements HasValue {
-        CREATE_SIGNALED_BIT(VK_FENCE_CREATE_SIGNALED_BIT()),
-        CREATE_FLAG_BITS_MAX_ENUM(VK_FENCE_CREATE_FLAG_BITS_MAX_ENUM());
+    public enum CreateFlag implements Flag {
+        CREATE_SIGNALED_BIT(1),
+        CREATE_FLAG_BITS_MAX_ENUM(2147483647);
 
         private final int value;
 
-        Flag(final int value) {
+        CreateFlag(final int value) {
             this.value = value;
         }
 
@@ -28,7 +24,7 @@ public class KrcFence extends AbstractKrcHandle {
     }
 
     public record CreateInfo(
-            int flags
+            CreateFlag ...flags
     ) {
     }
 
