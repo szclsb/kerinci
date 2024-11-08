@@ -1,12 +1,6 @@
 package ch.szclsb.kerinci.example;
 
 import ch.szclsb.kerinci.internal.*;
-import ch.szclsb.kerinci.internal.commands.KrcCommandPool;
-import ch.szclsb.kerinci.internal.commands.KrcCommandPoolFactory;
-import ch.szclsb.kerinci.internal.fence.KrcFence;
-import ch.szclsb.kerinci.internal.fence.KrcFenceFactory;
-import ch.szclsb.kerinci.internal.semaphore.KrcSemaphore;
-import ch.szclsb.kerinci.internal.semaphore.KrcSemaphoreFactory;
 
 import java.lang.foreign.Arena;
 

@@ -1,24 +1,51 @@
 package ch.szclsb.kerinci.internal.semaphore;
 
-import ch.szclsb.kerinci.internal.AbstractKrcHandle;
-import ch.szclsb.kerinci.internal.KrcDevice;
+import ch.szclsb.kerinci.api.VkSemaphoreCreateInfo;
+import ch.szclsb.kerinci.internal.*;
 
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_6.*;
 
-public class KrcSemaphore extends AbstractKrcHandle {
-    public record CreateInfo(
-            int flags  // future use
-    ) {
+public class KrcSemaphore extends AbstractKrcHandle2 {
+    private KrcSemaphore(KrcDevice device, MemorySegment vkHandle, Runnable destructor) {
+        super(device, vkHandle, destructor);
     }
 
-    protected KrcSemaphore(KrcDevice device, MemorySegment vkHandle) {
-        super(device, vkHandle);
-    }
+    public static class CreateInfo extends AbstractCreateInfo<KrcSemaphore> {
+        private final int flags;
 
-    @Override
-    public void close() throws Exception {
-        krc_vkDestroySemaphore(device.getLogical(), vkHandle, MemorySegment.NULL);
+        public CreateInfo(int flags) {
+            super(KrcSemaphore.class, KrcSemaphore::new);
+            this.flags = flags;
+        }
+
+        @Override
+        protected AddressLayout layout() {
+            return VkSemaphore;
+        }
+
+        @Override
+        protected MemorySegment allocateCreateInfo(Allocator allocator) {
+            var createInfoSegment = allocator.apply(VkSemaphoreCreateInfo.$LAYOUT());
+            VkSemaphoreCreateInfo.sType$set(createInfoSegment, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO());
+            return createInfoSegment;
+        }
+
+        @Override
+        protected void writeCreateInfo(MemorySegment pCreateInfo) {
+            VkSemaphoreCreateInfo.flags$set(pCreateInfo, flags);
+        }
+
+        @Override
+        protected boolean create(KrcDevice device, MemorySegment pCreateInfo, MemorySegment pHandle) {
+            return krc_vkCreateSemaphore(device.getLogical(), pCreateInfo, MemorySegment.NULL, pHandle) != VK_SUCCESS();
+        }
+
+        @Override
+        protected void destroy(KrcDevice device, MemorySegment vkHandle) {
+            krc_vkDestroySemaphore(device.getLogical(), vkHandle, MemorySegment.NULL);
+        }
     }
 }
