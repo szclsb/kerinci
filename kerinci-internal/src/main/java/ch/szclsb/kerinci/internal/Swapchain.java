@@ -7,16 +7,10 @@ import ch.szclsb.kerinci.internal.extent.KrcExtent3D;
 import ch.szclsb.kerinci.internal.extent.KrcExtentFactory;
 import ch.szclsb.kerinci.internal.images.*;
 import ch.szclsb.kerinci.internal.imageview.KrcImageView;
-import ch.szclsb.kerinci.internal.imageview.KrcImageViewFactory;
-import ch.szclsb.kerinci.internal.attachment.KrcAttachmentDescription;
-import ch.szclsb.kerinci.internal.attachment.KrcAttachmentReference;
+import ch.szclsb.kerinci.internal.renderpass.*;
 import ch.szclsb.kerinci.internal.memory.KrcDeviceMemory;
-import ch.szclsb.kerinci.internal.memory.KrcDeviceMemoryAllocator;
 import ch.szclsb.kerinci.internal.memory.KrcMemoryPropertyFlags;
-import ch.szclsb.kerinci.internal.renderpass.KrcRenderPass;
-import ch.szclsb.kerinci.internal.renderpass.KrcRenderPassFactory;
 import ch.szclsb.kerinci.internal.swapchain.KrcSwapchain;
-import ch.szclsb.kerinci.internal.swapchain.KrcSwapchainFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +40,11 @@ public class Swapchain implements AutoCloseable {
     private KrcRenderPass renderPass;
 
     //    private NativeArray depthImageMemorys;
-    private KrcArray<KrcImage> swapChainImages;
-    private KrcArray<KrcImageView> swapChainImageViews;
-    private KrcArray<KrcImage> depthImages;
-    private KrcArray<KrcDeviceMemory> depthImageMemory;
-    private KrcArray<KrcImageView> depthImageViews;
+    private KrcArray2<KrcImage> swapChainImages;
+    private KrcArray2<KrcImageView> swapChainImageViews;
+    private KrcArray2<KrcImage> depthImages;
+    private KrcArray2<KrcDeviceMemory> depthImageMemory;
+    private KrcArray2<KrcImageView> depthImageViews;
 
     //
 //    private NativeArray imageAvailableSemaphores;
@@ -145,10 +139,10 @@ public class Swapchain implements AutoCloseable {
         );
         // todo old swapchain
 
-        return KrcSwapchainFactory.createSwapchain(device, swapChainCreateInfo);
+        return KrcFactory.create(device, swapChainCreateInfo);
     }
 
-    private KrcArray<KrcImageView> createImageViews() {
+    private KrcArray2<KrcImageView> createImageViews() {
         var subresource = new KrcImageSubresourceRange(
                 VK_IMAGE_ASPECT_COLOR_BIT(),
                 0,
@@ -156,7 +150,7 @@ public class Swapchain implements AutoCloseable {
                 0,
                 1
         );
-        return KrcImageViewFactory.createImageViewArray(arena::allocate, device, swapChainImages.stream()
+        return KrcFactory.createArray(arena::allocate, device, swapChainImages.stream()
                 .map(image -> new KrcImageView.CreateInfo(
                         0,
                         image,
@@ -169,7 +163,7 @@ public class Swapchain implements AutoCloseable {
     }
 
 
-    private KrcArray<KrcImage> createDepthImages() {
+    private KrcArray2<KrcImage> createDepthImages() {
         this.depthFormat = device.getVk().findSupportedFormat(new KrcFormat[]{
                 KrcFormat.D32_SFLOAT,
                 KrcFormat.D32_SFLOAT_S8_UINT,
@@ -198,11 +192,11 @@ public class Swapchain implements AutoCloseable {
                 null,
                 KrcImageLayout.UNDEFINED
         );
-        return KrcImageFactory.createImageArray(arena::allocate, device, imageCount, imageCreateInfo);
+        return KrcFactory.createArray(arena::allocate, device, imageCount, imageCreateInfo);
     }
 
-    private KrcArray<KrcDeviceMemory> bindDepthImages() {
-        var memoryArray = KrcDeviceMemoryAllocator.allocateArray(arena::allocate, device, depthImages.stream()
+    private KrcArray2<KrcDeviceMemory> bindDepthImages() {
+        var memoryArray = KrcFactory.createArray(arena::allocate, device, depthImages.stream()
                 .map(image -> {
                     var requirements = image.getMemoryRequirement();
                     return new KrcDeviceMemory.AllocateInfo(
@@ -220,7 +214,7 @@ public class Swapchain implements AutoCloseable {
         return memoryArray;
     }
 
-    private KrcArray<KrcImageView> createDepthImageViews() {
+    private KrcArray2<KrcImageView> createDepthImageViews() {
         var subresource = new KrcImageSubresourceRange(
                 VK_IMAGE_ASPECT_DEPTH_BIT(),
                 0,
@@ -228,7 +222,7 @@ public class Swapchain implements AutoCloseable {
                 0,
                 1
         );
-        return KrcImageViewFactory.createImageViewArray(arena::allocate, device, depthImages.stream()
+        return KrcFactory.createArray(arena::allocate, device, depthImages.stream()
                 .map(image -> new KrcImageView.CreateInfo(
                         0,
                         image,
@@ -264,7 +258,7 @@ public class Swapchain implements AutoCloseable {
                 VK_IMAGE_LAYOUT_UNDEFINED(),
                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL()
         );
-        var subpass = new KrcRenderPass.SubpassDescription(
+        var subpass = new KrcSubpassDescription(
                 0,
                 VK_PIPELINE_BIND_POINT_GRAPHICS(),
                 null,
@@ -280,7 +274,7 @@ public class Swapchain implements AutoCloseable {
                 ),
                 null
         );
-        var dependency = new KrcRenderPass.SubpassDependency(
+        var dependency = new KrcSubpassDependency(
                 0,
                 VK_SUBPASS_EXTERNAL(),
                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT() | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT(),
@@ -289,16 +283,16 @@ public class Swapchain implements AutoCloseable {
                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT() | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT(),
                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT() | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT()
         );
-        return KrcRenderPassFactory.createRenderPass(device, new KrcRenderPass.CreateInfo(
+        return KrcFactory.create(device, new KrcRenderPass.CreateInfo(
                 0,
                 new KrcAttachmentDescription[]{
                         colorAttachment,
                         depthAttachment
                 },
-                new KrcRenderPass.SubpassDescription[]{
+                new KrcSubpassDescription[]{
                         subpass
                 },
-                new KrcRenderPass.SubpassDependency[]{
+                new KrcSubpassDependency[]{
                         dependency
                 }
         ));

@@ -1,4 +1,4 @@
-package ch.szclsb.kerinci.internal.attachment;
+package ch.szclsb.kerinci.internal.renderpass;
 
 import ch.szclsb.kerinci.internal.KrcFormat;
 

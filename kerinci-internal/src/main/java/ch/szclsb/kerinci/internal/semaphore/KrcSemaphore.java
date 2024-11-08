@@ -3,7 +3,6 @@ package ch.szclsb.kerinci.internal.semaphore;
 import ch.szclsb.kerinci.api.VkSemaphoreCreateInfo;
 import ch.szclsb.kerinci.internal.*;
 
-import java.lang.foreign.AddressLayout;
 import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_6.*;
@@ -17,13 +16,8 @@ public class KrcSemaphore extends AbstractKrcHandle2 {
         private final int flags;
 
         public CreateInfo(int flags) {
-            super(KrcSemaphore.class, KrcSemaphore::new);
+            super(KrcSemaphore.class, KrcSemaphore::new, VkSemaphore);
             this.flags = flags;
-        }
-
-        @Override
-        protected AddressLayout layout() {
-            return VkSemaphore;
         }
 
         @Override
@@ -34,13 +28,13 @@ public class KrcSemaphore extends AbstractKrcHandle2 {
         }
 
         @Override
-        protected void writeCreateInfo(MemorySegment pCreateInfo) {
+        protected void writeCreateInfo(MemorySegment pCreateInfo, Allocator additional) {
             VkSemaphoreCreateInfo.flags$set(pCreateInfo, flags);
         }
 
         @Override
         protected boolean create(KrcDevice device, MemorySegment pCreateInfo, MemorySegment pHandle) {
-            return krc_vkCreateSemaphore(device.getLogical(), pCreateInfo, MemorySegment.NULL, pHandle) != VK_SUCCESS();
+            return krc_vkCreateSemaphore(device.getLogical(), pCreateInfo, MemorySegment.NULL, pHandle) == VK_SUCCESS();
         }
 
         @Override

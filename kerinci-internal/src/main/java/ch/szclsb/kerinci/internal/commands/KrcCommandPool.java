@@ -34,14 +34,9 @@ public class KrcCommandPool extends AbstractKrcHandle2 {
         private final int flags;
 
         public CreateInfo(QueueFamilyIndices indices, CreateFlag ...flags) {
-            super(KrcCommandPool.class, KrcCommandPool::new);
+            super(KrcCommandPool.class, KrcCommandPool::new, VkCommandPool);
             this.indices = indices;
             this.flags = or(flags);
-        }
-
-        @Override
-        protected AddressLayout layout() {
-            return VkCommandPool;
         }
 
         @Override
@@ -52,14 +47,14 @@ public class KrcCommandPool extends AbstractKrcHandle2 {
         }
 
         @Override
-        protected void writeCreateInfo(MemorySegment pCreateInfo) {
+        protected void writeCreateInfo(MemorySegment pCreateInfo, Allocator additional) {
             VkCommandPoolCreateInfo.queueFamilyIndex$set(pCreateInfo, indices.getGraphicsFamily());
             VkCommandPoolCreateInfo.flags$set(pCreateInfo, flags);
         }
 
         @Override
         protected boolean create(KrcDevice device, MemorySegment pCreateInfo, MemorySegment pHandle) {
-            return krc_vkCreateCommandPool(device.getLogical(), pCreateInfo, MemorySegment.NULL, pHandle) != VK_SUCCESS();
+            return krc_vkCreateCommandPool(device.getLogical(), pCreateInfo, MemorySegment.NULL, pHandle) == VK_SUCCESS();
         }
 
         @Override

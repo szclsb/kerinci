@@ -2,6 +2,7 @@ package ch.szclsb.kerinci.internal;
 
 import java.lang.foreign.MemorySegment;
 
+@Deprecated
 public abstract class AbstractKrcHandle implements AutoCloseable {
     protected final KrcDevice device;
     protected final MemorySegment vkHandle;
