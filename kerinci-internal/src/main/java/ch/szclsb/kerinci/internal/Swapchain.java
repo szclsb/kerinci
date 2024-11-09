@@ -5,7 +5,6 @@ import ch.szclsb.kerinci.api.VkSurfaceFormatKHR;
 import ch.szclsb.kerinci.internal.glfw.KrcWindow;
 import ch.szclsb.kerinci.internal.vulkan.KrcExtent2D;
 import ch.szclsb.kerinci.internal.vulkan.KrcExtent3D;
-import ch.szclsb.kerinci.internal.vulkan.KrcExtentFactory;
 import ch.szclsb.kerinci.internal.vulkan.KrcImageView;
 import ch.szclsb.kerinci.internal.vulkan.KrcDeviceMemory;
 import ch.szclsb.kerinci.internal.vulkan.KrcMemoryPropertyFlags;
@@ -103,12 +102,12 @@ public class Swapchain implements AutoCloseable {
 
         this.swapchainExtend = KrcExtent2D.cap(
                 window.getExtent(),
-                KrcExtentFactory.read2D(VkSurfaceCapabilitiesKHR.minImageExtent$slice(swapChainSupport.capabilities())),
-                KrcExtentFactory.read2D(VkSurfaceCapabilitiesKHR.maxImageExtent$slice(swapChainSupport.capabilities()))
+                swapChainSupport.capabilities().getMinImageExtent(),
+                swapChainSupport.capabilities().getMaxImageExtent()
         );
 
-        var imageCount = VkSurfaceCapabilitiesKHR.minImageCount$get(swapChainSupport.capabilities()) + 1;
-        var maxImageCount = VkSurfaceCapabilitiesKHR.maxImageCount$get(swapChainSupport.capabilities());
+        var imageCount = swapChainSupport.capabilities().getMinImageCount() + 1;
+        var maxImageCount = swapChainSupport.capabilities().getMaxImageCount();
         if (maxImageCount > 0 && imageCount > maxImageCount) {
             imageCount = maxImageCount;
         }
@@ -129,7 +128,7 @@ public class Swapchain implements AutoCloseable {
                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT(),
                 exclusive ? VK_SHARING_MODE_EXCLUSIVE() : VK_SHARING_MODE_CONCURRENT(),
                 exclusive ? null : new Integer[]{indices.getGraphicsFamily(), indices.getPresentFamily()},
-                VkSurfaceCapabilitiesKHR.currentTransform$get(swapChainSupport.capabilities()),
+                swapChainSupport.capabilities().getCurrentTransform(),
                 VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR(),
                 presentMode,
                 true,
@@ -173,8 +172,8 @@ public class Swapchain implements AutoCloseable {
                 KrcImageType.TYPE_2D,
                 depthFormat,
                 new KrcExtent3D(
-                        swapchainExtend.width(),
-                        swapchainExtend.height(),
+                        swapchainExtend.getWidth(),
+                        swapchainExtend.getHeight(),
                         1
                 ),
                 1,

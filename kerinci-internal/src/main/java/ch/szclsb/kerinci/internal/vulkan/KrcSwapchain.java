@@ -10,7 +10,6 @@ import java.lang.foreign.MemorySegment;
 
 import static ch.szclsb.kerinci.api.api_h_6.*;
 import static ch.szclsb.kerinci.internal.Utils.*;
-import static ch.szclsb.kerinci.internal.vulkan.KrcExtentFactory.write2D;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class KrcSwapchain extends AbstractKrcHandle {
@@ -84,7 +83,8 @@ public class KrcSwapchain extends AbstractKrcHandle {
             VkSwapchainCreateInfoKHR.minImageCount$set(pCreateInfo, minImageCount);
             VkSwapchainCreateInfoKHR.imageFormat$set(pCreateInfo, imageFormat);
             VkSwapchainCreateInfoKHR.imageColorSpace$set(pCreateInfo, imageColorSpace);
-            write2D(VkSwapchainCreateInfoKHR.imageExtent$slice(pCreateInfo), imageExtent);
+
+            imageExtent.write(VkSwapchainCreateInfoKHR.imageExtent$slice(pCreateInfo), additional);
             VkSwapchainCreateInfoKHR.imageArrayLayers$set(pCreateInfo, imageArrayLayers);
             VkSwapchainCreateInfoKHR.imageUsage$set(pCreateInfo, imageUsage);
             VkSwapchainCreateInfoKHR.imageSharingMode$set(pCreateInfo, imageSharingMode);

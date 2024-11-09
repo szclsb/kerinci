@@ -76,7 +76,7 @@ public class KrcImage extends AbstractKrcHandle {
             VkImageCreateInfo.flags$set(pCreateInfo, flags);
             VkImageCreateInfo.imageType$set(pCreateInfo, type.getValue());
             VkImageCreateInfo.format$set(pCreateInfo, format.getValue());
-            KrcExtentFactory.write3D(VkImageCreateInfo.extent$slice(pCreateInfo), extent);
+            extent.write(VkImageCreateInfo.extent$slice(pCreateInfo), additional);
             VkImageCreateInfo.mipLevels$set(pCreateInfo, mipLevels);
             VkImageCreateInfo.arrayLayers$set(pCreateInfo, arrayLayers);
             VkImageCreateInfo.samples$set(pCreateInfo, or(samples));

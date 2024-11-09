@@ -194,21 +194,25 @@ public class VulkanApi implements AutoCloseable {
     }
 
     public SwapChainSupportDetails querySwapChainSupport(KrcWindow window) {
-        var surface = window.getSurface();
-        var capabilities = arena.allocate(VkSurfaceCapabilitiesKHR.$LAYOUT());
-        krc_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, capabilities);
+        var pSurface = window.getSurface();
+
+        var capabilities = new KrcSurfaceCapabilities();
+        var pCapabilities = arena.allocate(VkSurfaceCapabilitiesKHR.$LAYOUT());
+        krc_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, pSurface, pCapabilities);
+        capabilities.read(pCapabilities);
 
         var pFormatCount = arena.allocate(uint32_t);
-        krc_vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pFormatCount, MemorySegment.NULL);
+        krc_vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurface, pFormatCount, MemorySegment.NULL);
         var formatCount = pFormatCount.get(uint32_t, 0);
         var pFormats = arena.allocate(MemoryLayout.sequenceLayout(formatCount, VkSurfaceFormatKHR.$LAYOUT()));
-        krc_vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pFormatCount, pFormats);
+        krc_vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurface, pFormatCount, pFormats);
 
         var pPresentModeCount = arena.allocate(uint32_t);
-        krc_vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, MemorySegment.NULL);
+        krc_vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, pSurface, pPresentModeCount, MemorySegment.NULL);
         var presentModeCount = pPresentModeCount.get(uint32_t, 0);
         var pPresentModes = arena.allocate(MemoryLayout.sequenceLayout(presentModeCount, JAVA_INT));
-        krc_vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, pPresentModes);
+        krc_vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, pSurface, pPresentModeCount, pPresentModes);
+
 
         return new SwapChainSupportDetails(
                 capabilities,
