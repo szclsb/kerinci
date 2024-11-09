@@ -1,17 +1,9 @@
 package ch.szclsb.kerinci.internal;
 
-import ch.szclsb.kerinci.api.VkFramebufferCreateInfo;
-import ch.szclsb.kerinci.api.VkRenderPassCreateInfo;
-import ch.szclsb.kerinci.api.VkSubpassDescription;
-
-import java.lang.foreign.AddressLayout;
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static ch.szclsb.kerinci.api.api_h_6.VK_FALSE;
 import static ch.szclsb.kerinci.api.api_h_6.VK_TRUE;
@@ -32,9 +24,9 @@ public class Utils {
         }
     }
 
-    public static <T extends AbstractKrcHandle2> void writeArrayPointer(KrcArray2<T> array, MemorySegment segment,
-                                                                        BiConsumer<MemorySegment, Integer> countSetter,
-                                                                        BiConsumer<MemorySegment, MemorySegment> pSetter) {
+    public static <T extends AbstractKrcHandle> void writeArrayPointer(KrcArray<T> array, MemorySegment segment,
+                                                                       BiConsumer<MemorySegment, Integer> countSetter,
+                                                                       BiConsumer<MemorySegment, MemorySegment> pSetter) {
         countSetter.accept(segment, array.length());
         pSetter.accept(segment, array.getpArray());
     }
