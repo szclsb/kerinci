@@ -1,5 +1,6 @@
 package ch.szclsb.kerinci.internal;
 
+import ch.szclsb.kerinci.api.VkFramebufferCreateInfo;
 import ch.szclsb.kerinci.api.VkRenderPassCreateInfo;
 import ch.szclsb.kerinci.api.VkSubpassDescription;
 
@@ -29,6 +30,13 @@ public class Utils {
         for (var i = 0; i < length; ++i) {
             function.accept(segment.asSlice(i * layout.byteSize(), layout), i);
         }
+    }
+
+    public static <T extends AbstractKrcHandle2> void writeArrayPointer(KrcArray2<T> array, MemorySegment segment,
+                                                                        BiConsumer<MemorySegment, Integer> countSetter,
+                                                                        BiConsumer<MemorySegment, MemorySegment> pSetter) {
+        countSetter.accept(segment, array.length());
+        pSetter.accept(segment, array.getpArray());
     }
 
     public static <T> void writeArrayPointer(T[] array, MemoryLayout layout, MemorySegment segment,
@@ -73,7 +81,7 @@ public class Utils {
 
     // todo cache values?
     public static <T extends HasValue> T from(int value, Class<T> enumClass) {
-        for(var t : enumClass.getEnumConstants()) {
+        for (var t : enumClass.getEnumConstants()) {
             if (t.getValue() == value) {
                 return t;
             }

@@ -61,7 +61,7 @@ public class KrcFence extends AbstractKrcHandle2 {
     }
 
     public static void reset(KrcArrayExtended<KrcFence, KrcDevice> fences) {
-        krc_vkResetFences(fences.getExtension().getLogical(), fences.length(), fences.getPointer());
+        krc_vkResetFences(fences.getExtension().getLogical(), fences.length(), fences.getpArray());
     }
 
     public void reset() {
@@ -69,7 +69,7 @@ public class KrcFence extends AbstractKrcHandle2 {
     }
 
     public static void waitFor(KrcArrayExtended<KrcFence, KrcDevice> fences, boolean waitAll, long timeout) {
-        krc_vkWaitForFences(fences.getExtension().getLogical(), fences.length(), fences.getPointer(),
+        krc_vkWaitForFences(fences.getExtension().getLogical(), fences.length(), fences.getpArray(),
                 waitAll ? VK_TRUE() : VK_FALSE(), timeout);
     }
 
