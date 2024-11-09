@@ -1,7 +1,11 @@
 package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.internal.HasValue;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum KrcColorSpace implements HasValue {
     SRGB_NONLINEAR_KHR(0),
     DISPLAY_P3_NONLINEAR_EXT(1000104001),
@@ -19,22 +23,9 @@ public enum KrcColorSpace implements HasValue {
     PASS_THROUGH_EXT(1000104013),
     EXTENDED_SRGB_NONLINEAR_EXT(1000104014),
     DISPLAY_NATIVE_AMD(1000213000),
-    RGB_NONLINEAR_KHR(SRGB_NONLINEAR_KHR),
-    DCI_P3_LINEAR_EXT(DISPLAY_P3_LINEAR_EXT),
+    RGB_NONLINEAR_KHR(SRGB_NONLINEAR_KHR.value),
+    DCI_P3_LINEAR_EXT(DISPLAY_P3_LINEAR_EXT.value),
     MAX_ENUM_KHR(0x7FFFFFFF);
 
     private final int value;
-
-    KrcColorSpace(int value) {
-        this.value = value;
-    }
-
-    KrcColorSpace(KrcColorSpace colorSpace) {
-        this.value = colorSpace.value;
-    }
-
-    @Override
-    public int getValue() {
-        return value;
-    }
 }

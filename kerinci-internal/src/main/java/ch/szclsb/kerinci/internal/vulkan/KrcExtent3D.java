@@ -2,22 +2,19 @@ package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.api.VkExtent3D;
 import ch.szclsb.kerinci.internal.Allocator;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.lang.foreign.MemorySegment;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class KrcExtent3D extends AbstractStruct {
     private int width;
     private int height;
     private int depth;
-
-    public KrcExtent3D() {
-    }
-
-    public KrcExtent3D(int width, int height, int depth) {
-        this.width = width;
-        this.height = height;
-        this.depth = depth;
-    }
 
     public static KrcExtent3D cap(KrcExtent3D current, KrcExtent3D min, KrcExtent3D max) {
         return new KrcExtent3D(

@@ -1,7 +1,11 @@
 package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.internal.Flag;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum KrcImageUsageFlags implements Flag {
     TRANSFER_SRC_BIT(0x00000001),
     TRANSFER_DST_BIT(0x00000002),
@@ -27,13 +31,4 @@ public enum KrcImageUsageFlags implements Flag {
     FLAG_BITS_MAX_ENUM(0x7FFFFFFF);
 
     private final int value;
-
-    KrcImageUsageFlags(final int value) {
-        this.value = value;
-    }
-
-    @Override
-    public int getValue() {
-        return value;
-    }
 }

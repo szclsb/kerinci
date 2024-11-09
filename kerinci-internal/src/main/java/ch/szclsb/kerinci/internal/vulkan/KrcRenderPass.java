@@ -48,7 +48,7 @@ public class KrcRenderPass extends AbstractKrcHandle {
             VkRenderPassCreateInfo.flags$set(pCreateInfo, flags);
             writeArrayPointer(attachments,
                     VkAttachmentDescription.$LAYOUT(), pCreateInfo, additional,
-                    KrcFactory::setAttachmentDescription,
+                    (pSlice, attachment) -> attachment.write(pSlice, additional),
                     VkRenderPassCreateInfo::attachmentCount$set,
                     VkRenderPassCreateInfo::pAttachments$set);
             writeArrayPointer(subpasses,

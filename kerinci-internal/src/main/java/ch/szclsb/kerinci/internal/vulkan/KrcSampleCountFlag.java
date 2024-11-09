@@ -1,7 +1,11 @@
 package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.internal.Flag;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum KrcSampleCountFlag implements Flag {
     BIT_1(0x00000001),
     BIT_2(0x00000002),
@@ -12,12 +16,6 @@ public enum KrcSampleCountFlag implements Flag {
     BIT_64(0x00000040),
     BITS_MAX_ENUM(0x7FFFFFFF);
 
-    private int value;
-    KrcSampleCountFlag(int value) {
-        this.value = value;
-    }
-    public int getValue() {
-        return value;
-    }
+    private final int value;
 }
 

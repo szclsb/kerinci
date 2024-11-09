@@ -1,7 +1,11 @@
 package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.internal.HasValue;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum KrcImageType implements HasValue {
     TYPE_1D(0),
     TYPE_2D(1),
@@ -13,13 +17,4 @@ public enum KrcImageType implements HasValue {
     TYPE_MAX_ENUM(2147483647);
 
     private final int value;
-
-    KrcImageType(final int value) {
-        this.value = value;
-    }
-
-    @Override
-    public int getValue() {
-        return value;
-    }
 }

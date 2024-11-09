@@ -1,7 +1,11 @@
 package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.internal.Flag;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum KrcMemoryPropertyFlags implements Flag {
     DEVICE_LOCAL_BIT(0x00000001),
     HOST_VISIBLE_BIT(0x00000002),
@@ -15,13 +19,4 @@ public enum KrcMemoryPropertyFlags implements Flag {
     FLAG_BITS_MAX_ENUM(0x7FFFFFFF);
 
     private final int value;
-
-    KrcMemoryPropertyFlags(final int value) {
-        this.value = value;
-    }
-
-    @Override
-    public int getValue() {
-        return value;
-    }
 }

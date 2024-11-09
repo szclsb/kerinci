@@ -132,18 +132,6 @@ public class KrcFactory {
         VkSubpassDependency.dependencyFlags$set(segment, subpassDependency.dependencyFlags());
     }
 
-    public static void setAttachmentDescription(MemorySegment segment, KrcAttachmentDescription description) {
-        VkAttachmentDescription.flags$set(segment, description.flags());
-        VkAttachmentDescription.format$set(segment, description.format().getValue());
-        VkAttachmentDescription.samples$set(segment, description.samples());
-        VkAttachmentDescription.loadOp$set(segment, description.loadOp());
-        VkAttachmentDescription.storeOp$set(segment, description.storeOp());
-        VkAttachmentDescription.stencilLoadOp$set(segment, description.stencilLoadOp());
-        VkAttachmentDescription.stencilStoreOp$set(segment, description.stencilStoreOp());
-        VkAttachmentDescription.initialLayout$set(segment, description.initialLayout());
-        VkAttachmentDescription.finalLayout$set(segment, description.finalLayout());
-    }
-
     public static void setAttachmentReference(MemorySegment segment, KrcAttachmentReference attachmentReference) {
         VkAttachmentReference.attachment$set(segment, attachmentReference.attachment());
         VkAttachmentReference.layout$set(segment, attachmentReference.layout());
