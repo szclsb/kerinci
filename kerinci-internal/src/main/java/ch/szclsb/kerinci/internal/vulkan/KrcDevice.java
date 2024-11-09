@@ -3,6 +3,9 @@ package ch.szclsb.kerinci.internal.vulkan;
 import ch.szclsb.kerinci.api.VkDeviceCreateInfo;
 import ch.szclsb.kerinci.api.VkDeviceQueueCreateInfo;
 import ch.szclsb.kerinci.api.VkPhysicalDeviceFeatures;
+import ch.szclsb.kerinci.internal.AbstractKrcHandle;
+import ch.szclsb.kerinci.internal.Allocator;
+import ch.szclsb.kerinci.internal.KrcArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 import static ch.szclsb.kerinci.api.api_h.C_POINTER;
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.*;
+import static ch.szclsb.kerinci.internal.Utils.forEachSlice;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
 
 public class KrcDevice implements AutoCloseable {
@@ -108,6 +112,69 @@ public class KrcDevice implements AutoCloseable {
 
     public void waitIdle() {
         krc_vkDeviceWaitIdle(logical);
+    }
+
+    private <T extends AbstractKrcHandle> T constructHandle(AbstractCreateInfo<T> createInfo, MemorySegment pCreateInfo, MemorySegment pHandle) {
+        if (!createInfo.create(this, pCreateInfo, pHandle)) {
+            throw new RuntimeException(STR."Failed to create \{createInfo.gettClass().getSimpleName()}");
+        }
+        var vkHandle = pHandle.get(createInfo.getLayout(), 0);
+        logger.debug(STR."Created \{createInfo.gettClass().getSimpleName()} at \{printAddress(vkHandle)}");
+        Runnable destructor = () -> {
+            createInfo.destroy(this, vkHandle);
+            logger.debug(STR."Destroyed \{createInfo.gettClass().getSimpleName()} at \{printAddress(vkHandle)}");
+        };
+        return createInfo.getConstructor().apply(this, vkHandle, destructor);
+    }
+
+    public <T extends AbstractKrcHandle> T createHandle(AbstractCreateInfo<T> createInfo) {
+        if (createInfo == null) {
+            throw new IllegalArgumentException("arguments contain null");
+        }
+
+        try (var arena = Arena.ofConfined()) {
+            var pCreateInfo = createInfo.allocateCreateInfo(arena::allocate);
+            createInfo.writeCreateInfo(pCreateInfo, arena::allocate);
+            var pHandle = arena.allocate(createInfo.getLayout());
+            return constructHandle(createInfo, pCreateInfo, pHandle);
+        }
+    }
+
+    public <T extends AbstractKrcHandle> KrcArray<T> createHandleArray(Allocator arrayAllocator, int count, AbstractCreateInfo<T> createInfo) {
+        if (arrayAllocator == null || count <= 0 || createInfo == null) {
+            throw new IllegalArgumentException("arguments contain null or non positive sizes");
+        }
+
+        try (var arena = Arena.ofConfined()) {
+            var pCreateInfo = createInfo.allocateCreateInfo(arena::allocate);
+            createInfo.writeCreateInfo(pCreateInfo, arena::allocate);
+            var pArray = arrayAllocator.apply(MemoryLayout.sequenceLayout(count, createInfo.getLayout()));
+            var data = (T[]) new AbstractKrcHandle[count];
+            forEachSlice(createInfo.getLayout(), pArray, (slice, i) ->
+                    data[i] = constructHandle(createInfo, pCreateInfo, slice));
+            return new KrcArray<>(pArray.asReadOnly(), data);
+        }
+    }
+
+    public <T extends AbstractKrcHandle> KrcArray<T> createHandleArray(Allocator arrayAllocator, List<? extends AbstractCreateInfo<T>> createInfos) {
+        if (arrayAllocator == null || createInfos == null || createInfos.isEmpty()) {
+            throw new IllegalArgumentException("arguments contain null or non positive sizes");
+        }
+        // todo check same layout in create Array
+
+        try (var arena = Arena.ofConfined()) {
+            var first = createInfos.getFirst();
+            var layout = first.getLayout();
+            var pCreateInfo = first.allocateCreateInfo(arena::allocate);
+            var pArray = arrayAllocator.apply(MemoryLayout.sequenceLayout(createInfos.size(), layout));
+            var data = (T[]) new AbstractKrcHandle[createInfos.size()];
+            forEachSlice(layout, pArray, (slice, i) -> {
+                var createInfo = createInfos.get(i);
+                createInfo.writeCreateInfo(pCreateInfo, arena::allocate);  // todo improve additional allocations
+                data[i] = constructHandle(createInfo, pCreateInfo, slice);
+            });
+            return new KrcArray<>(pArray.asReadOnly(), data);
+        }
     }
 
     @Override

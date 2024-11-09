@@ -135,7 +135,7 @@ public class Swapchain implements AutoCloseable {
         );
         // todo old swapchain
 
-        return KrcFactory.create(device, swapChainCreateInfo);
+        return device.createHandle(swapChainCreateInfo);
     }
 
     private KrcArray<KrcImageView> createImageViews() {
@@ -146,7 +146,7 @@ public class Swapchain implements AutoCloseable {
                 0,
                 1
         );
-        return KrcFactory.createArray(arena::allocate, device, swapChainImages.stream()
+        return device.createHandleArray(arena::allocate, swapChainImages.stream()
                 .map(image -> new KrcImageView.CreateInfo(
                         0,
                         image,
@@ -188,11 +188,11 @@ public class Swapchain implements AutoCloseable {
                 null,
                 KrcImageLayout.UNDEFINED
         );
-        return KrcFactory.createArray(arena::allocate, device, imageCount, imageCreateInfo);
+        return device.createHandleArray(arena::allocate, imageCount, imageCreateInfo);
     }
 
     private KrcArray<KrcDeviceMemory> bindDepthImages() {
-        var memoryArray = KrcFactory.createArray(arena::allocate, device, depthImages.stream()
+        var memoryArray = device.createHandleArray(arena::allocate, depthImages.stream()
                 .map(image -> {
                     var requirements = image.getMemoryRequirement();
                     return new KrcDeviceMemory.AllocateInfo(
@@ -218,7 +218,7 @@ public class Swapchain implements AutoCloseable {
                 0,
                 1
         );
-        return KrcFactory.createArray(arena::allocate, device, depthImages.stream()
+        return device.createHandleArray(arena::allocate, depthImages.stream()
                 .map(image -> new KrcImageView.CreateInfo(
                         0,
                         image,
@@ -279,7 +279,7 @@ public class Swapchain implements AutoCloseable {
                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT() | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT(),
                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT() | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT()
         );
-        return KrcFactory.create(device, new KrcRenderPass.CreateInfo(
+        return device.createHandle(new KrcRenderPass.CreateInfo(
                 0,
                 new KrcAttachmentDescription[]{
                         colorAttachment,
