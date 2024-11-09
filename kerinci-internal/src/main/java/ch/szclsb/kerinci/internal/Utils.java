@@ -71,16 +71,6 @@ public class Utils {
 //                .reduce((a, b) -> a & b);
 //    }
 
-    // todo cache values?
-    public static <T extends HasValue> T from(int value, Class<T> enumClass) {
-        for (var t : enumClass.getEnumConstants()) {
-            if (t.getValue() == value) {
-                return t;
-            }
-        }
-        return null;
-    }
-
     public static <T extends Flag> int or(T[] flags) {
         return Arrays.stream(flags)
                 .mapToInt(HasValue::getValue)

@@ -53,12 +53,12 @@ public class KrcRenderPass extends AbstractKrcHandle {
                     VkRenderPassCreateInfo::pAttachments$set);
             writeArrayPointer(subpasses,
                     VkSubpassDescription.$LAYOUT(), pCreateInfo, additional,
-                    (slice, subpassDescription) -> KrcFactory.setSubpassDescription(additional, slice, subpassDescription),
+                    (pSlice, subpassDescription) -> subpassDescription.write(pSlice, additional),
                     VkRenderPassCreateInfo::subpassCount$set,
                     VkRenderPassCreateInfo::pSubpasses$set);
             writeArrayPointer(dependencies,
                     VkSubpassDependency.$LAYOUT(), pCreateInfo, additional,
-                    KrcFactory::setSubpassDependency,
+                    (pSlice, subpassDependency) -> subpassDependency.write(pSlice, additional),
                     VkRenderPassCreateInfo::dependencyCount$set,
                     VkRenderPassCreateInfo::pDependencies$set);
         }

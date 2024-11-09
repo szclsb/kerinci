@@ -8,8 +8,6 @@ import java.lang.foreign.MemorySegment;
 import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkCreateImageView;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkDestroyImageView;
-import static ch.szclsb.kerinci.internal.vulkan.KrcFactory.setComponentMapping;
-import static ch.szclsb.kerinci.internal.vulkan.KrcFactory.setSubresourceRange;
 
 public class KrcImageView extends AbstractKrcHandle {
     private KrcImageView(KrcDevice device, MemorySegment vkHandle, Runnable destructor) {
@@ -53,10 +51,10 @@ public class KrcImageView extends AbstractKrcHandle {
             VkImageViewCreateInfo.viewType$set(pCreateInfo, viewType.getValue());
             VkImageViewCreateInfo.format$set(pCreateInfo, format.getValue());
             if (componentMapping != null) {
-                setComponentMapping(VkImageViewCreateInfo.components$slice(pCreateInfo), componentMapping);
+                componentMapping.write(VkImageViewCreateInfo.components$slice(pCreateInfo), additional);
             }
             if (subresourceRange != null) {
-                setSubresourceRange(VkImageViewCreateInfo.subresourceRange$slice(pCreateInfo), subresourceRange);
+                subresourceRange.write(VkImageViewCreateInfo.subresourceRange$slice(pCreateInfo), additional);
             }
         }
 

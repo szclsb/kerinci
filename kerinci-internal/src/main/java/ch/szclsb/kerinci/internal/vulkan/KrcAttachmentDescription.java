@@ -2,20 +2,19 @@ package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.api.VkAttachmentDescription;
 import ch.szclsb.kerinci.internal.Allocator;
+import ch.szclsb.kerinci.internal.Context;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.lang.foreign.MemorySegment;
 
-import static ch.szclsb.kerinci.internal.Utils.from;
-
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class KrcAttachmentDescription extends AbstractStruct {
     private int flags;
-    private KrcFormat format;
+    private KrcFormat format = KrcFormat.UNDEFINED;
     private int samples;
     private int loadOp;
     private int storeOp;
@@ -40,7 +39,7 @@ public class KrcAttachmentDescription extends AbstractStruct {
     @Override
     protected void read(MemorySegment pStruct) {
         flags = VkAttachmentDescription.flags$get(pStruct);
-        format = from(VkAttachmentDescription.format$get(pStruct), KrcFormat.class);
+        format = Context.INSTANCE.getEnum(VkAttachmentDescription.format$get(pStruct), KrcFormat.class);
         samples = VkAttachmentDescription.samples$get(pStruct);
         loadOp = VkAttachmentDescription.loadOp$get(pStruct);
         storeOp = VkAttachmentDescription.storeOp$get(pStruct);

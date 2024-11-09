@@ -19,7 +19,6 @@ import java.lang.foreign.MemorySegment;
 import static ch.szclsb.kerinci.api.api_h_2.VK_FORMAT_B8G8R8A8_UNORM;
 import static ch.szclsb.kerinci.api.api_h_4.*;
 import static ch.szclsb.kerinci.api.api_h_6.VK_SUBPASS_EXTERNAL;
-import static ch.szclsb.kerinci.internal.Utils.from;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Swapchain implements AutoCloseable {
@@ -112,7 +111,7 @@ public class Swapchain implements AutoCloseable {
             imageCount = maxImageCount;
         }
 
-        this.swapChainImageFormat = from(VkSurfaceFormatKHR.format$get(format), KrcFormat.class);
+        this.swapChainImageFormat = Context.INSTANCE.getEnum(VkSurfaceFormatKHR.format$get(format), KrcFormat.class);
 //        this.extentSegment = arena.allocate(VkExtent2D.$LAYOUT());
 //        KrcExtentFactory.write2D(swapchainExtend, extentSegment);
 

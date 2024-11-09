@@ -1,6 +1,5 @@
 package ch.szclsb.kerinci.internal.vulkan;
 
-import ch.szclsb.kerinci.api.*;
 import ch.szclsb.kerinci.internal.AbstractKrcHandle;
 import ch.szclsb.kerinci.internal.Allocator;
 import ch.szclsb.kerinci.internal.KrcArray;
@@ -13,8 +12,6 @@ import java.lang.foreign.MemorySegment;
 import java.util.List;
 
 import static ch.szclsb.kerinci.internal.Utils.*;
-import static ch.szclsb.kerinci.internal.Utils.writeArrayPointer;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class KrcFactory {
     private static final Logger logger = LoggerFactory.getLogger(KrcFactory.class);
@@ -80,60 +77,5 @@ public class KrcFactory {
             });
             return new KrcArray<>(pArray.asReadOnly(), data);
         }
-    }
-
-    public static void setComponentMapping(MemorySegment segment, KrcComponentMapping componentMapping) {
-        VkComponentMapping.r$set(segment, componentMapping.r());
-        VkComponentMapping.g$set(segment, componentMapping.g());
-        VkComponentMapping.b$set(segment, componentMapping.b());
-        VkComponentMapping.a$set(segment, componentMapping.a());
-    }
-
-    public static void setSubresourceRange(MemorySegment segment, KrcImageSubresourceRange imageSubresourceRange) {
-        VkImageSubresourceRange.aspectMask$set(segment, imageSubresourceRange.aspectMask());
-        VkImageSubresourceRange.baseMipLevel$set(segment, imageSubresourceRange.baseMipLevel());
-        VkImageSubresourceRange.levelCount$set(segment, imageSubresourceRange.levelCount());
-        VkImageSubresourceRange.baseArrayLayer$set(segment, imageSubresourceRange.baseArrayLayer());
-        VkImageSubresourceRange.layerCount$set(segment, imageSubresourceRange.layerCount());
-    }
-
-    public static void setSubpassDescription(Allocator allocator, MemorySegment segment, KrcSubpassDescription subpassDescription) {
-        VkSubpassDescription.flags$set(segment, subpassDescription.flag());
-        VkSubpassDescription.pipelineBindPoint$set(segment, subpassDescription.pipelineBindPoint());
-        writeArrayPointer(subpassDescription.inputAttachments(),
-                VkAttachmentReference.$LAYOUT(), segment, allocator,
-                KrcFactory::setAttachmentReference,
-                VkSubpassDescription::inputAttachmentCount$set,
-                VkSubpassDescription::pInputAttachments$set);
-        writeArrayPointer(subpassDescription.colorAttachments(),
-                VkAttachmentReference.$LAYOUT(), segment, allocator,
-                KrcFactory::setAttachmentReference,
-                VkSubpassDescription::colorAttachmentCount$set,
-                VkSubpassDescription::pColorAttachments$set);
-        // resolveAttachment? Uses colorAttachmentCount as well -> subTypes?
-        writePointer(subpassDescription.depthStencilAttachment(),
-                VkAttachmentReference.$LAYOUT(), segment, allocator,
-                KrcFactory::setAttachmentReference,
-                VkSubpassDescription::pDepthStencilAttachment$set);
-        writeArrayPointer(subpassDescription.preserveAttachments(),
-                JAVA_INT, segment, allocator,
-                (slice, i) -> slice.set(JAVA_INT, 0, i),
-                VkSubpassDescription::preserveAttachmentCount$set,
-                VkSubpassDescription::pPreserveAttachments$set);
-    }
-
-    public static void setSubpassDependency(MemorySegment segment, KrcSubpassDependency subpassDependency) {
-        VkSubpassDependency.srcSubpass$set(segment, subpassDependency.srcSubpass());
-        VkSubpassDependency.dstSubpass$set(segment, subpassDependency.dstSubpass());
-        VkSubpassDependency.srcStageMask$set(segment, subpassDependency.srcStageMask());
-        VkSubpassDependency.dstStageMask$set(segment, subpassDependency.dstStageMask());
-        VkSubpassDependency.srcAccessMask$set(segment, subpassDependency.srcAccessMask());
-        VkSubpassDependency.dstAccessMask$set(segment, subpassDependency.dstAccessMask());
-        VkSubpassDependency.dependencyFlags$set(segment, subpassDependency.dependencyFlags());
-    }
-
-    public static void setAttachmentReference(MemorySegment segment, KrcAttachmentReference attachmentReference) {
-        VkAttachmentReference.attachment$set(segment, attachmentReference.attachment());
-        VkAttachmentReference.layout$set(segment, attachmentReference.layout());
     }
 }
