@@ -21,8 +21,7 @@ import java.util.ArrayList;
 import static ch.szclsb.kerinci.api.api_h_2.VK_FORMAT_B8G8R8A8_UNORM;
 import static ch.szclsb.kerinci.api.api_h_4.*;
 import static ch.szclsb.kerinci.api.api_h_6.VK_SUBPASS_EXTERNAL;
-import static java.lang.foreign.ValueLayout.ADDRESS;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
+import static java.lang.foreign.ValueLayout.*;
 
 public class Swapchain implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(Swapchain.class);
@@ -74,7 +73,7 @@ public class Swapchain implements AutoCloseable {
         this.depthImageMemory = bindDepthImages();
         this.depthImageViews = createDepthImageViews();
         this.renderPass = createRenderPass();
-//        this.framebuffers = createFramebuffers();
+        this.framebuffers = createFramebuffers();
 //        createSyncObjects();
     }
 
@@ -303,8 +302,8 @@ public class Swapchain implements AutoCloseable {
                 var swapchainImageView = swapChainImageViews.get(i);
                 var depthImageView = depthImageViews.get(i);
                 var pArray = localArena.allocate(MemoryLayout.sequenceLayout(2, ADDRESS));
-                pArray.setAtIndex(ADDRESS, 0, MemorySegment.ofAddress(depthImageView.getVkHandle().address()));
-                pArray.setAtIndex(ADDRESS, 1, MemorySegment.ofAddress(depthImageView.getVkHandle().address()));
+                pArray.set(ADDRESS, 0 * ADDRESS.byteSize(), swapchainImageView.getVkHandle());
+                pArray.set(ADDRESS, 1 * ADDRESS.byteSize(), depthImageView.getVkHandle());
                 var array = new KrcArray<>(pArray, new KrcImageView[]{
                         swapchainImageView,
                         depthImageView
@@ -318,8 +317,8 @@ public class Swapchain implements AutoCloseable {
                         1
                         ));
             }
+            return device.createHandleArray(arena::allocate, framebufferCreateInfos);
         }
-        return device.createHandleArray(arena::allocate, framebufferCreateInfos);
     }
 
 //    private void createSyncObjects() {
