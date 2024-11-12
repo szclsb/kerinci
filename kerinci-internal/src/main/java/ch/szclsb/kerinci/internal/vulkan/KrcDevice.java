@@ -21,6 +21,7 @@ import static ch.szclsb.kerinci.api.api_h_1.*;
 import static ch.szclsb.kerinci.api.api_h_6.*;
 import static ch.szclsb.kerinci.internal.Utils.forEachSlice;
 import static ch.szclsb.kerinci.internal.Utils.printAddress;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 
 public class KrcDevice implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(KrcDevice.class);
@@ -118,7 +119,7 @@ public class KrcDevice implements AutoCloseable {
         if (!createInfo.create(this, pCreateInfo, pHandle)) {
             throw new RuntimeException(STR."Failed to create \{createInfo.gettClass().getSimpleName()}");
         }
-        var vkHandle = pHandle.get(createInfo.getLayout(), 0);
+        var vkHandle = pHandle.get(ADDRESS, 0);
         logger.debug(STR."Created \{createInfo.gettClass().getSimpleName()} at \{printAddress(vkHandle)}");
         Runnable destructor = () -> {
             createInfo.destroy(this, vkHandle);
@@ -135,7 +136,7 @@ public class KrcDevice implements AutoCloseable {
         try (var arena = Arena.ofConfined()) {
             var pCreateInfo = createInfo.allocateCreateInfo(arena::allocate);
             createInfo.writeCreateInfo(pCreateInfo, arena::allocate);
-            var pHandle = arena.allocate(createInfo.getLayout());
+            var pHandle = arena.allocate(ADDRESS);
             return constructHandle(createInfo, pCreateInfo, pHandle);
         }
     }
@@ -148,9 +149,9 @@ public class KrcDevice implements AutoCloseable {
         try (var arena = Arena.ofConfined()) {
             var pCreateInfo = createInfo.allocateCreateInfo(arena::allocate);
             createInfo.writeCreateInfo(pCreateInfo, arena::allocate);
-            var pArray = arrayAllocator.apply(MemoryLayout.sequenceLayout(count, createInfo.getLayout()));
+            var pArray = arrayAllocator.apply(MemoryLayout.sequenceLayout(count, ADDRESS));
             var data = (T[]) new AbstractKrcHandle[count];
-            forEachSlice(createInfo.getLayout(), pArray, (slice, i) ->
+            forEachSlice(ADDRESS, pArray, (slice, i) ->
                     data[i] = constructHandle(createInfo, pCreateInfo, slice));
             return new KrcArray<>(pArray.asReadOnly(), data);
         }
@@ -164,11 +165,10 @@ public class KrcDevice implements AutoCloseable {
 
         try (var arena = Arena.ofConfined()) {
             var first = createInfos.getFirst();
-            var layout = first.getLayout();
             var pCreateInfo = first.allocateCreateInfo(arena::allocate);
-            var pArray = arrayAllocator.apply(MemoryLayout.sequenceLayout(createInfos.size(), layout));
+            var pArray = arrayAllocator.apply(MemoryLayout.sequenceLayout(createInfos.size(), ADDRESS));
             var data = (T[]) new AbstractKrcHandle[createInfos.size()];
-            forEachSlice(layout, pArray, (slice, i) -> {
+            forEachSlice(ADDRESS, pArray, (slice, i) -> {
                 var createInfo = createInfos.get(i);
                 createInfo.writeCreateInfo(pCreateInfo, arena::allocate);  // todo improve additional allocations
                 data[i] = constructHandle(createInfo, pCreateInfo, slice);

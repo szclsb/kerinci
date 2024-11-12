@@ -19,7 +19,7 @@ public class KrcDeviceMemory extends AbstractKrcHandle {
         private final int memoryTypeIndex;
 
         public AllocateInfo(long allocationSize, int memoryTypeIndex) {
-            super(KrcDeviceMemory.class, KrcDeviceMemory::new, VkDeviceMemory);
+            super(KrcDeviceMemory.class, KrcDeviceMemory::new);
             this.allocationSize = allocationSize;
             this.memoryTypeIndex = memoryTypeIndex;
         }

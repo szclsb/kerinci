@@ -5,8 +5,10 @@ import ch.szclsb.kerinci.internal.vulkan.VulkanApi;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
 import static ch.szclsb.kerinci.api.api_h.*;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 
 public class KrcWindow implements AutoCloseable {
     private final VulkanApi vk;
@@ -22,11 +24,11 @@ public class KrcWindow implements AutoCloseable {
 
             this.handle = krc_glfwCreateWindow(width, height, windowName, MemorySegment.NULL, MemorySegment.NULL);
 
-            var pVkSurfaceKHR = arena.allocate(VkSurfaceKHR);
+            var pVkSurfaceKHR = arena.allocate(ADDRESS);
             if (krc_glfwCreateWindowSurface(vk.getInstance(), handle, MemorySegment.NULL, pVkSurfaceKHR) != VK_SUCCESS()) {
                 throw new RuntimeException("Failed to create window surface");
             }
-            this.surface = pVkSurfaceKHR.get(VkSurfaceKHR, 0);
+            this.surface = pVkSurfaceKHR.get(ADDRESS, 0);
         }
     }
 

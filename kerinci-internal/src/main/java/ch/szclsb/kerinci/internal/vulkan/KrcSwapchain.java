@@ -51,7 +51,7 @@ public class KrcSwapchain extends AbstractKrcHandle {
                 boolean clipped,
                 KrcSwapchain oldSwapchain
         ) {
-            super(KrcSwapchain.class, KrcSwapchain::new, VkSwapchainKHR);
+            super(KrcSwapchain.class, KrcSwapchain::new);
             this.flags = flags;
             this.window = window;
             this.minImageCount = minImageCount;

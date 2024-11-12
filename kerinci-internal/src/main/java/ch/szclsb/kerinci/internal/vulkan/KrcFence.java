@@ -33,7 +33,7 @@ public class KrcFence extends AbstractKrcHandle {
         private final int flags;
 
         public CreateInfo(CreateFlag ...flags) {
-            super(KrcFence.class, KrcFence::new, VkFence);
+            super(KrcFence.class, KrcFence::new);
             this.flags = or(flags);
         }
 

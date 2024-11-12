@@ -33,7 +33,7 @@ public class KrcCommandPool extends AbstractKrcHandle {
         private final int flags;
 
         public CreateInfo(QueueFamilyIndices indices, CreateFlag ...flags) {
-            super(KrcCommandPool.class, KrcCommandPool::new, VkCommandPool);
+            super(KrcCommandPool.class, KrcCommandPool::new);
             this.indices = indices;
             this.flags = or(flags);
         }

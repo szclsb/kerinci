@@ -16,6 +16,7 @@ import java.util.HashSet;
 import static ch.szclsb.kerinci.api.api_h.*;
 import static ch.szclsb.kerinci.api.api_h_6.krc_vkGetPhysicalDeviceQueueFamilyProperties;
 import static ch.szclsb.kerinci.internal.Utils.*;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class VulkanApi implements AutoCloseable {
@@ -59,8 +60,8 @@ public class VulkanApi implements AutoCloseable {
         VkInstanceCreateInfo.ppEnabledExtensionNames$set(instanceCreateInfo, enabledExtensions.data());
         if (validationLayer) {
             var validationLayerName = arena.allocateUtf8String("VK_LAYER_KHRONOS_validation");
-            var ppValidationLayer = arena.allocate(MemoryLayout.sequenceLayout(1, C_POINTER));
-            ppValidationLayer.set(C_POINTER, 0, MemorySegment.ofAddress(validationLayerName.address()));
+            var ppValidationLayer = arena.allocate(MemoryLayout.sequenceLayout(1, ADDRESS));
+            ppValidationLayer.set(ADDRESS, 0, MemorySegment.ofAddress(validationLayerName.address()));
             VkInstanceCreateInfo.enabledLayerCount$set(instanceCreateInfo, 1);
             VkInstanceCreateInfo.ppEnabledLayerNames$set(instanceCreateInfo, ppValidationLayer);
 
@@ -72,11 +73,11 @@ public class VulkanApi implements AutoCloseable {
             VkInstanceCreateInfo.pNext$set(instanceCreateInfo, MemorySegment.NULL);
         }
 
-        var pInstance = arena.allocate(VkInstance);
+        var pInstance = arena.allocate(ADDRESS);
         if (krc_vkCreateInstance(instanceCreateInfo, MemorySegment.NULL, pInstance) != VK_SUCCESS()) {
             throw new RuntimeException("Failed to create instance");
         }
-        var instance = pInstance.get(VkInstance, 0);
+        var instance = pInstance.get(ADDRESS, 0);
         logger.debug("Created vulkan instance {}", printAddress(instance));
         return instance;
     }
@@ -117,7 +118,7 @@ public class VulkanApi implements AutoCloseable {
         var ppRequiredExtensions = arena.allocate(MemoryLayout.sequenceLayout(requiredExtensionsCopy.size(), C_POINTER));
         for (int i = 0; i < requiredExtensionsCopy.size(); ++i) {
             var extensionName = arena.allocateUtf8String(requiredExtensionsCopy.get(i));
-            ppRequiredExtensions.set(C_POINTER, i * C_POINTER.byteSize(), extensionName);
+            ppRequiredExtensions.set(ADDRESS, i * ADDRESS.byteSize(), extensionName);
         }
         return new NativeArray(ppRequiredExtensions, requiredExtensionsCopy.size());
     }
@@ -125,14 +126,14 @@ public class VulkanApi implements AutoCloseable {
     private MemorySegment initDebugMessenger() {
         var debugCreateInfo = arena.allocate(VkDebugUtilsMessengerCreateInfoEXT.$LAYOUT());
         populateDebugMessenger(debugCreateInfo);
-        var pDebugMessenger = arena.allocate(VkDebugUtilsMessengerEXT);
+        var pDebugMessenger = arena.allocate(ADDRESS);
         var functionName = arena.allocateUtf8String("vkCreateDebugUtilsMessengerEXT");
         var function = PFN_vkCreateDebugUtilsMessengerEXT.ofAddress(
                 krc_vkGetInstanceProcAddr(instance, functionName), arena);
         if (function.apply(instance, debugCreateInfo, MemorySegment.NULL, pDebugMessenger) != VK_SUCCESS()) {
             throw new RuntimeException("Failed to create debug messenger");
         }
-        var debugMessenger = pDebugMessenger.get(VkDebugUtilsMessengerEXT, 0);
+        var debugMessenger = pDebugMessenger.get(ADDRESS, 0);
         logger.debug("Created debug messenger {}", printAddress(debugMessenger));
         return debugMessenger;
     }
@@ -170,7 +171,7 @@ public class VulkanApi implements AutoCloseable {
         logger.info("physical devices:");
         var physicalDeviceProperties = arena.allocate(VkPhysicalDeviceProperties.$LAYOUT());
         for (var i = 0; i < physicalDevicesCount; ++i) {
-            var physicalDevice = pPhysicalDevices.get(VkPhysicalDevice, i * VkPhysicalDevice.byteSize());
+            var physicalDevice = pPhysicalDevices.get(ADDRESS, i * ADDRESS.byteSize());
             krc_vkGetPhysicalDeviceProperties(physicalDevice, physicalDeviceProperties);
             var deviceName = VkPhysicalDeviceProperties.deviceName$slice(physicalDeviceProperties).getUtf8String(0);
 

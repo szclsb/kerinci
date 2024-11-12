@@ -16,7 +16,7 @@ public class KrcSemaphore extends AbstractKrcHandle {
         private final int flags;
 
         public CreateInfo(int flags) {
-            super(KrcSemaphore.class, KrcSemaphore::new, VkSemaphore);
+            super(KrcSemaphore.class, KrcSemaphore::new);
             this.flags = flags;
         }
 

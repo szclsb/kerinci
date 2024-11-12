@@ -49,7 +49,7 @@ public class KrcImage extends AbstractKrcHandle {
                 KrcSharingMode sharingMode,
                 Integer[] queueFamilyIndex,
                 KrcImageLayout initialLayout) {
-            super(KrcImage.class, KrcImage::new, VkImage);
+            super(KrcImage.class, KrcImage::new);
             this.flags = flags;
             this.type = type;
             this.format = format;

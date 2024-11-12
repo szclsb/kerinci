@@ -9,16 +9,10 @@ import java.lang.foreign.MemorySegment;
 public abstract class AbstractCreateInfo<T extends AbstractKrcHandle> {
     private final Class<T> tClass;
     private final HandleConstructor<T> constructor;
-    private final AddressLayout layout;
 
-    public AbstractCreateInfo(Class<T> tClass, HandleConstructor<T> constructor, AddressLayout layout) {
-        this.layout = layout;
+    public AbstractCreateInfo(Class<T> tClass, HandleConstructor<T> constructor) {
         this.tClass = tClass;
         this.constructor = constructor;
-    }
-
-    public AddressLayout getLayout() {
-        return layout;
     }
 
     public Class<T> gettClass() {

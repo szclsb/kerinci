@@ -30,7 +30,7 @@ public class KrcFramebuffer extends AbstractKrcHandle {
                 int width,
                 int height,
                 int layers) {
-            super(KrcFramebuffer.class, KrcFramebuffer::new, VkFramebuffer);
+            super(KrcFramebuffer.class, KrcFramebuffer::new);
             this.flags = flags;
             this.renderPass = renderPass;
             this.attachments = attachments;

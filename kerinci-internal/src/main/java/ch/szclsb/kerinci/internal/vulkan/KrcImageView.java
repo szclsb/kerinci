@@ -28,7 +28,7 @@ public class KrcImageView extends AbstractKrcHandle {
                           KrcFormat format,
                           KrcComponentMapping componentMapping,
                           KrcImageSubresourceRange subresourceRange) {
-            super(KrcImageView.class, KrcImageView::new, VkImageView);
+            super(KrcImageView.class, KrcImageView::new);
             this.flags = flags;
             this.image = image;
             this.viewType = viewType;

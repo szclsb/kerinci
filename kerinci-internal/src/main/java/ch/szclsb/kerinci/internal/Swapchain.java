@@ -14,11 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import java.util.ArrayList;
 
 import static ch.szclsb.kerinci.api.api_h_2.VK_FORMAT_B8G8R8A8_UNORM;
 import static ch.szclsb.kerinci.api.api_h_4.*;
 import static ch.szclsb.kerinci.api.api_h_6.VK_SUBPASS_EXTERNAL;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Swapchain implements AutoCloseable {
@@ -34,17 +37,16 @@ public class Swapchain implements AutoCloseable {
     private KrcFormat swapChainImageFormat;
     private KrcFormat depthFormat;
     //
-//    private NativeArray swapChainFramebuffers;
     private KrcRenderPass renderPass;
 
-    //    private NativeArray depthImageMemorys;
     private KrcArray<KrcImage> swapChainImages;
     private KrcArray<KrcImageView> swapChainImageViews;
     private KrcArray<KrcImage> depthImages;
     private KrcArray<KrcDeviceMemory> depthImageMemory;
     private KrcArray<KrcImageView> depthImageViews;
 
-    //
+    private KrcArray<KrcFramebuffer> framebuffers;
+
 //    private NativeArray imageAvailableSemaphores;
 //    private NativeArray renderFinishedSemaphores;
 //    private NativeArray inFlightFences;
@@ -72,7 +74,7 @@ public class Swapchain implements AutoCloseable {
         this.depthImageMemory = bindDepthImages();
         this.depthImageViews = createDepthImageViews();
         this.renderPass = createRenderPass();
-//        createFramebuffers();
+//        this.framebuffers = createFramebuffers();
 //        createSyncObjects();
     }
 
@@ -294,10 +296,32 @@ public class Swapchain implements AutoCloseable {
         ));
     }
 
-//    private void createFramebuffers() {
-//
-//    }
-//
+    private KrcArray<KrcFramebuffer> createFramebuffers() {
+        var framebufferCreateInfos = new ArrayList<KrcFramebuffer.CreateInfo>();
+        try (var localArena = Arena.ofConfined()) {
+            for (var i = 0; i < swapChainImages.length(); i++) {
+                var swapchainImageView = swapChainImageViews.get(i);
+                var depthImageView = depthImageViews.get(i);
+                var pArray = localArena.allocate(MemoryLayout.sequenceLayout(2, ADDRESS));
+                pArray.setAtIndex(ADDRESS, 0, MemorySegment.ofAddress(depthImageView.getVkHandle().address()));
+                pArray.setAtIndex(ADDRESS, 1, MemorySegment.ofAddress(depthImageView.getVkHandle().address()));
+                var array = new KrcArray<>(pArray, new KrcImageView[]{
+                        swapchainImageView,
+                        depthImageView
+                });
+                framebufferCreateInfos.add(new KrcFramebuffer.CreateInfo(
+                        0,
+                        renderPass,
+                        array,
+                        swapchainExtend.getWidth(),
+                        swapchainExtend.getHeight(),
+                        1
+                        ));
+            }
+        }
+        return device.createHandleArray(arena::allocate, framebufferCreateInfos);
+    }
+
 //    private void createSyncObjects() {
 //
 //    }

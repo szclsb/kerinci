@@ -29,7 +29,7 @@ public class KrcRenderPass extends AbstractKrcHandle {
                 KrcAttachmentDescription[] attachments,
                 KrcSubpassDescription[] subpasses,
                 KrcSubpassDependency[] dependencies) {
-            super(KrcRenderPass.class, KrcRenderPass::new, VkRenderPass);
+            super(KrcRenderPass.class, KrcRenderPass::new);
             this.flags = flags;
             this.attachments = attachments;
             this.subpasses = subpasses;
