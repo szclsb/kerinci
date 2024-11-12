@@ -350,6 +350,7 @@ public class Swapchain implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        framebuffers.close();
         renderPass.close();
         depthImageViews.close();
         depthImageMemory.close();
