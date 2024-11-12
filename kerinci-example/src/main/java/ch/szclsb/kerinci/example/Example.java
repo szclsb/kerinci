@@ -17,7 +17,7 @@ public class Example {
             var indices = vk.findQueueFamilies(window);
             var swapchainSupport = vk.querySwapChainSupport(window);
             try (var device = new KrcDevice(vk, indices);
-                 var swapchain = new Swapchain(device, window, indices, swapchainSupport)
+                 var swapchain = new Swapchain(device, window, indices, swapchainSupport, 2)
             ) {
                 while (!window.shouldClose()) {
                     glfw.pollEvents();

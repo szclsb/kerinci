@@ -1,6 +1,5 @@
 package ch.szclsb.kerinci.internal;
 
-import ch.szclsb.kerinci.api.VkSurfaceCapabilitiesKHR;
 import ch.szclsb.kerinci.api.VkSurfaceFormatKHR;
 import ch.szclsb.kerinci.internal.glfw.KrcWindow;
 import ch.szclsb.kerinci.internal.vulkan.KrcExtent2D;
@@ -27,6 +26,7 @@ public class Swapchain implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(Swapchain.class);
 
     private final Arena arena;
+    private final int maxFramesInFlight;
 
     private KrcDevice device;
     private KrcSwapchain swapchain;
@@ -35,8 +35,6 @@ public class Swapchain implements AutoCloseable {
     private KrcExtent2D swapchainExtend;
     private KrcFormat swapChainImageFormat;
     private KrcFormat depthFormat;
-    //
-    private KrcRenderPass renderPass;
 
     private KrcArray<KrcImage> swapChainImages;
     private KrcArray<KrcImageView> swapChainImageViews;
@@ -44,19 +42,22 @@ public class Swapchain implements AutoCloseable {
     private KrcArray<KrcDeviceMemory> depthImageMemory;
     private KrcArray<KrcImageView> depthImageViews;
 
+    private KrcRenderPass renderPass;
+
     private KrcArray<KrcFramebuffer> framebuffers;
 
-//    private NativeArray imageAvailableSemaphores;
-//    private NativeArray renderFinishedSemaphores;
-//    private NativeArray inFlightFences;
+    private KrcArray<KrcSemaphore> imageAvailableSemaphores;
+    private KrcArray<KrcSemaphore> renderFinishedSemaphores;
+    private KrcArray<KrcFence> inFlightFences;
 //    private NativeArray imagesInFlight;
 //
 //    private int currentFrame = 0;
 //
 //    private MemorySegment pImageIndex;
 //
-    public Swapchain(KrcDevice device, KrcWindow window, QueueFamilyIndices indices, SwapChainSupportDetails swapChainSupport) {
+    public Swapchain(KrcDevice device, KrcWindow window, QueueFamilyIndices indices, SwapChainSupportDetails swapChainSupport, int maxFramesInFlight) {
         this.arena = Arena.ofConfined();
+        this.maxFramesInFlight = maxFramesInFlight;
         this.device = device;
         init(device, window, indices, swapChainSupport);
     }
@@ -74,7 +75,11 @@ public class Swapchain implements AutoCloseable {
         this.depthImageViews = createDepthImageViews();
         this.renderPass = createRenderPass();
         this.framebuffers = createFramebuffers();
-//        createSyncObjects();
+        this.imageAvailableSemaphores = device.createHandleArray(arena::allocate, maxFramesInFlight, new KrcSemaphore.CreateInfo(0));
+        this.renderFinishedSemaphores = device.createHandleArray(arena::allocate, maxFramesInFlight, new KrcSemaphore.CreateInfo(0));
+        this.inFlightFences = device.createHandleArray(arena::allocate, maxFramesInFlight, new KrcFence.CreateInfo(
+                KrcFence.CreateFlag.CREATE_SIGNALED_BIT
+        ));
     }
 
 //    private int findDepthFormat() {
@@ -321,10 +326,6 @@ public class Swapchain implements AutoCloseable {
         }
     }
 
-//    private void createSyncObjects() {
-//
-//    }
-//
 //    protected boolean acquireNextImage(int imageIndex) {
 //        pImageIndex.set(JAVA_INT, 0, imageIndex);
 //        krc_vkWaitForFences(
@@ -350,6 +351,10 @@ public class Swapchain implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        inFlightFences.close();
+        renderFinishedSemaphores.close();
+        imageAvailableSemaphores.close();
+
         framebuffers.close();
         renderPass.close();
         depthImageViews.close();
