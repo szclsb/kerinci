@@ -32,7 +32,7 @@ add_library(${NAME} SHARED api.c)
 add_custom_command(
     TARGET ${NAME}
     PRE_BUILD # Call this command pre-build
-    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/api.py -t ${CMAKE_SOURCE_DIR} -f ${CMAKE_SOURCE_DIR}/nativeFunctions.txt -s ${CMAKE_SOURCE_DIR}/external/GLFW/include/GLFW/glfw3.h ${Vulkan_INCLUDE_DIRS}/vulkan/vulkan_core.h -p krc_ -e GLFWAPI VKAPI_ATTR VKAPI_CALL
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ilm.py -t ${CMAKE_SOURCE_DIR} -f ${CMAKE_SOURCE_DIR}/nativeFunctions.txt -s ${CMAKE_SOURCE_DIR}/external/GLFW/include/GLFW/glfw3.h ${Vulkan_INCLUDE_DIRS}/vulkan/vulkan_core.h -p krc_ -e GLFWAPI VKAPI_ATTR VKAPI_CALL
     COMMENT "Generate Headers"
 )
 target_include_directories(${NAME} PUBLIC include
