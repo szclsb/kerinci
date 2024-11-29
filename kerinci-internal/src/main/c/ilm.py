@@ -9,6 +9,14 @@ def is_valid_type(t):
     '''used to check if a cursor has a type'''
     return t.kind != clang.cindex.TypeKind.INVALID
 
+def parseType(cursor):
+    for typeCursor in cursor.get_children():
+        if typeCursor.kind == clang.cindex.CursorKind.TYPE_REF:
+            return {
+                "type": typeCursor.spelling,
+                "pointer": cursor.type.kind == clang.cindex.TypeKind.POINTER
+            }
+
 def parse(cursor):
     '''print ast into definition file'''
     if cursor.kind == clang.cindex.CursorKind.TRANSLATION_UNIT:
@@ -30,6 +38,30 @@ def parse(cursor):
             "kind": "enum",
             "name": cursor.spelling,
             "values": values
+        }
+    elif cursor.kind == clang.cindex.CursorKind.STRUCT_DECL:
+        fields = dict()
+        for fieldCursor in cursor.get_children():
+            if fieldCursor.kind == clang.cindex.CursorKind.FIELD_DECL:
+                fields[fieldCursor.spelling] = parseType(fieldCursor)
+        return {
+            "kind": "struct",
+            "name": cursor.spelling,
+            "fields": fields
+        }
+    elif cursor.kind == clang.cindex.CursorKind.FUNCTION_DECL:
+        params = dict()
+        returnType = None
+        for paramCursor in cursor.get_children():
+            if paramCursor.kind == clang.cindex.CursorKind.TYPE_REF:
+                returnType = parseType(paramCursor)
+            elif paramCursor.kind == clang.cindex.CursorKind.PARM_DECL:
+                params[paramCursor.spelling] = parseType(paramCursor)
+        return {
+            "kind": "function",
+            "name": cursor.spelling,
+            "returnType": returnType,
+            "params": params
         }
     return None
 
@@ -54,6 +86,7 @@ def main():
     #         print('-- ' + function)
     #         functions.add(function)
 
+    #todo macro handling
     i = 1  # todo source name
     for source in args.sources:
         tmpIlmPath = os.path.join(args.target, 'ilm.json.tmp')
