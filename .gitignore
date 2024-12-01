@@ -23,5 +23,6 @@ cmake-build-*/
 
 *.log
 *.tmp
+*.ast.json
 **/src/main/c/*.c
 **/src/main/c/include/*.h
