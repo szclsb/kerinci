@@ -29,10 +29,12 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
     private void generateNativeLib() throws MojoExecutionException {
         getLog().info("start generating native shared library");
+        var nativeFunctions = getWorkingDirectory().toString() + "/nativeFunctions.txt"; //todo
         executeCommands(
                 new CommandLine("cmake",
                         "-S", nativePath,
                         "-B", nativeBuildPath,
+                        "-DFUNCTION_FILTER:STRING=" + nativeFunctions,
                         "."),
                 new CommandLine("cmake",
                         "--build", nativeBuildPath)
