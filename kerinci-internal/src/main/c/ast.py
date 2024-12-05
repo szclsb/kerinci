@@ -24,6 +24,7 @@ def parse(cursor):
         "kind": str(cursor.kind),
         "spelling": next(cursor.get_tokens()).spelling if is_literal(cursor) else cursor.spelling,
         "type":  parse_type(cursor.type),
+        "result_type": parse_type(cursor.result_type),
         "children": children
     }
 
