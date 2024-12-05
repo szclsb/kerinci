@@ -34,7 +34,8 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
                 new CommandLine("cmake",
                         "-S", nativePath,
                         "-B", nativeBuildPath,
-                        "-DFUNCTION_FILTER:STRING=" + nativeFunctions,
+                        "-DKRC_FUNCTION_FILTER:STRING=" + nativeFunctions,
+                        "-DKRC_FUNCTION_PREFIX:STRING=_",
                         "."),
                 new CommandLine("cmake",
                         "--build", nativeBuildPath)

@@ -3,10 +3,9 @@ import shutil
 import json
 import argparse
 
-def getType(cursor):
-    #todo improve
-    typeKind = cursor['type']['kind']
-    const = cursor['type']['const']
+def getType(type, ref_cursor):
+    typeKind = type['kind']
+    const = type['const']
     if typeKind == "TypeKind.INT":
         return "const int" if const else "int"
     elif typeKind == "TypeKind.FLOAT":
@@ -14,12 +13,12 @@ def getType(cursor):
     elif typeKind == "TypeKind.VOID":
         return "void"
     elif typeKind == "TypeKind.ELABORATED":
-        return cursor['children'][0]['spelling']
+        return ref_cursor['spelling']
     elif typeKind == "TypeKind.POINTER":
-        const = cursor['type']['ref']['const']
-        refTypeKind = cursor['type']['ref']['kind']
+        const = type['ref']['const']
+        refTypeKind = type['ref']['kind']
         if refTypeKind == "TypeKind.ELABORATED":
-            return cursor['children'][0]['spelling']+"*"
+            return ref_cursor['spelling']+"*"
         elif refTypeKind == "TypeKind.CHAR_S":
             return "const char*" if const else "char*"
         elif refTypeKind == "TypeKind.INT":
@@ -73,16 +72,24 @@ def main():
             ast = json.load(sourceFile)
         for node in ast['children']:
             if node['kind'] == "CursorKind.FUNCTION_DECL" and node['spelling'] in functions:
-                returnType = "void"
-                params = list()
+                function_return_type_node = None
+                function_params = list()
+                function_args = list()
                 for childNode in node['children']:
                     if childNode['kind'] == "CursorKind.TYPE_REF":
-                        returnType = childNode['spelling']
+                        function_return_type_node = childNode
                     elif childNode['kind'] == "CursorKind.PARM_DECL":
-                        params.append(f"{getType(childNode)} {childNode['spelling']}")
-                external_function = args.prefix + node['spelling']
+                        function_params.append(f"{getType(childNode['type'], childNode['children'][0] if len(childNode['children']) > 0 else None)} {childNode['spelling']}")
+                        function_args.append(childNode['spelling'])
+                function_return_type = getType(node['result_type'], function_return_type_node)
+                function_name = node['spelling']
+                external_function_name = args.prefix + function_name
                 tmpHeaderFile.write(f"""
-__declspec(dllexport) {returnType} {external_function}({', '.join(params)});""")
+__declspec(dllexport) {function_return_type} {external_function_name}({', '.join(function_params)});""")
+                tmpSourceFile.write(f"""
+{function_return_type} {external_function_name}({', '.join(function_params)}) {{
+    {"" if function_return_type == "void" else "return "}{function_name}({', '.join(function_args)});
+}}""")
 
     tmpHeaderFile.close()
     tmpSourceFile.close()
