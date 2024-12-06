@@ -4,30 +4,21 @@ import json
 import argparse
 
 def getType(type, ref_cursor):
+    name = "???"
     typeKind = type['kind']
-    const = type['const']
     if typeKind == "TypeKind.INT":
-        return "const int" if const else "int"
+        name = "int"
     elif typeKind == "TypeKind.FLOAT":
-        return "const float" if const else "float"
+        name = "float"
+    elif typeKind == "TypeKind.CHAR_S":
+        name = "char"
     elif typeKind == "TypeKind.VOID":
-        return "void"
+        name = "void"
     elif typeKind == "TypeKind.ELABORATED":
-        return ref_cursor['spelling']
+        name = ref_cursor['spelling']
     elif typeKind == "TypeKind.POINTER":
-        const = type['ref']['const']
-        refTypeKind = type['ref']['kind']
-        if refTypeKind == "TypeKind.ELABORATED":
-            return ref_cursor['spelling']+"*"
-        elif refTypeKind == "TypeKind.CHAR_S":
-            return "const char*" if const else "char*"
-        elif refTypeKind == "TypeKind.INT":
-            return "const int*" if const else "int*"
-        elif refTypeKind == "TypeKind.FLOAT":
-            return "const float*" if const else "float*"
-        elif refTypeKind == "TypeKind.VOID":
-            return "void*"
-    return ""
+        name = getType(type['ref'], ref_cursor) + "*"
+    return f"{'const ' if type['const'] else ''}{name}"
 
 def main():
     parser = argparse.ArgumentParser(prog='generate ast from header sources')
