@@ -3,15 +3,25 @@ package ch.szclsb.maven.plugins;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 
 public abstract class AbstractCommandProcessMojo extends AbstractMojo {
+    @Parameter(defaultValue = "${project}", required = true, readonly = true)
+    private MavenProject project;
     @Parameter(property = "workingDirectory", required = true)
     private File workingDirectory;
+
+    public MavenProject getProject() {
+        return project;
+    }
 
     public File getWorkingDirectory() {
         return workingDirectory;
@@ -47,6 +57,25 @@ public abstract class AbstractCommandProcessMojo extends AbstractMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException(e);
+        }
+    }
+
+    public void prepareDir(Path dir) throws IOException {
+        if (Files.exists(dir)) {
+            try (var files = Files.walk(dir)) {
+                files
+                        .filter(path -> !dir.equals(path))
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException ioe) {
+                                getLog().error(ioe.getMessage(), ioe);
+                            }
+                        });
+            }
+        } else {
+            Files.createDirectories(dir);
         }
     }
 }

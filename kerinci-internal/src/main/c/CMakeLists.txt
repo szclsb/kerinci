@@ -32,8 +32,8 @@ add_library(${NAME} SHARED api.c)
 add_custom_command(
     TARGET ${NAME}
     PRE_BUILD # Call this command pre-build
-    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ast.py -t ${CMAKE_SOURCE_DIR} -s ${CMAKE_SOURCE_DIR}/external/GLFW/include/GLFW/glfw3.h ${Vulkan_INCLUDE_DIRS}/vulkan/vulkan_core.h
-    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/eli.py -t ${CMAKE_SOURCE_DIR} -s ${CMAKE_SOURCE_DIR}/glfw3.h.ast.json ${CMAKE_SOURCE_DIR}/vulkan_core.h.ast.json -f ${KRC_FUNCTION_FILTER} -p ${KRC_FUNCTION_PREFIX}
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ast.py -t ${KRC_MAVEN_PROJECT_DIR} -s ${CMAKE_SOURCE_DIR}/external/GLFW/include/GLFW/glfw3.h ${Vulkan_INCLUDE_DIRS}/vulkan/vulkan_core.h
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/eli.py -t ${CMAKE_SOURCE_DIR} -s ${KRC_MAVEN_PROJECT_DIR}/glfw3.h.ast.json ${KRC_MAVEN_PROJECT_DIR}/vulkan_core.h.ast.json -f ${KRC_FUNCTION_FILTER} -p ${KRC_FUNCTION_PREFIX}
     COMMENT "pre build"
 )
 target_include_directories(${NAME} PUBLIC include

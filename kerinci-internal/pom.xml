@@ -14,8 +14,9 @@
     <properties>
         <vulkanSdk>${env.VULKAN_SDK}</vulkanSdk>
         <dllBuildDir>${project.basedir}/target-native</dllBuildDir>
-        <nativeLibDir>src/main/c</nativeLibDir>
-        <nativeLibSource>${project.build.directory}/generated-sources/native-libs</nativeLibSource>
+        <nativeLibDir>${project.basedir}/src/main/c</nativeLibDir>
+        <glfwSdk>${nativeLibDir}/external/GLFW</glfwSdk>
+        <nativeOutputDir>${project.build.directory}/generated-sources/native-libs</nativeOutputDir>
     </properties>
 
     <dependencies>
@@ -64,44 +65,24 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <windows>true</windows>
                     <workingDirectory>${project.basedir}</workingDirectory>
                     <nativePath>${nativeLibDir}</nativePath>
                     <nativeBuildPath>${dllBuildDir}</nativeBuildPath>
-                    <target>${nativeLibSource}</target>
+                    <nativeFunctionsPath>${project.basedir}/nativeFunctions.txt</nativeFunctionsPath>
+                    <target>${nativeOutputDir}</target>
                     <libs>
                         <lib>
-                            <name>Api</name>
-                            <includeDirs>
-                                <includeDir>${nativeLibDir}/include</includeDir>
-                                <includeDir>${nativeLibDir}/external/GLFW/include</includeDir>
-                                <includeDir>${vulkanSdk}/Include</includeDir>
-                            </includeDirs>
-                            <header>${nativeLibDir}/include/api.h</header>
+                            <name>Glfw</name>
+                            <header>${glfwSdk}/include/GLFW/glfw3.h</header>
                             <targetPackage>ch.szclsb.kerinci.api</targetPackage>
-                            <library>${dllBuildDir}/Debug/Kerinci.dll</library>
+                        </lib>
+                        <lib>
+                            <name>Vulkan</name>
+                            <header>${vulkanSdk}/vulkan/vulkan_core.h</header>
+                            <targetPackage>ch.szclsb.kerinci.api</targetPackage>
                         </lib>
                     </libs>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${nativeLibSource}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
