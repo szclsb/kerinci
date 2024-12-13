@@ -1,5 +1,6 @@
-package ch.szclsb.maven.plugins;
+package ch.szclsb.maven.plugins.writer;
 
+import ch.szclsb.maven.plugins.LibcCursor;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -16,6 +17,8 @@ public class EnumWriter extends FileWriter {
 
     public void write(LibcCursor enumCursor) throws IOException {
         var className = enumCursor.getSpelling();
+        logger.info("-- declaring enum: " + className);
+
         var enumConst = new ArrayList<String>();
 
         for (var enumValue : enumCursor.getChildren()) {

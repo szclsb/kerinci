@@ -1,5 +1,8 @@
 package ch.szclsb.maven.plugins;
 
+import ch.szclsb.maven.plugins.writer.EnumWriter;
+import ch.szclsb.maven.plugins.writer.FunctionWriter;
+import ch.szclsb.maven.plugins.writer.StructWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -9,7 +12,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,9 +62,9 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
         try {
             var nativeFunctions = new HashSet<String>();
-                Files.readAllLines(nativeFunctionsPath.toPath()).stream()
-                        .filter(line -> !line.startsWith("--"))
-                        .forEach(nativeFunctions::add);
+            Files.readAllLines(nativeFunctionsPath.toPath()).stream()
+                    .filter(line -> !line.startsWith("--"))
+                    .forEach(nativeFunctions::add);
 
             var objectMapper = new ObjectMapper();
             for (var targetLib : libs.stream().collect(Collectors.groupingBy(Lib::getTargetPackage)).entrySet()) {
@@ -72,22 +74,19 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
                 prepareDir(outputPath);
 
                 var enumWriter = new EnumWriter(getLog(), outputPath, targetPackage);
+                var structWriter = new StructWriter(getLog(), outputPath, targetPackage);
+                var libFunctionWriter = new FunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
 
                 for (var lib : targetLib.getValue()) {
                     getLog().info("start generating native library " + lib.getName());
                     var translationUnit = parseAst(objectMapper, lib.getHeader().toPath());
-
-                    var cursorKinds = translationUnit.getChildren().stream()
-                            .collect(Collectors.groupingBy(LibcCursor::getKind));
-                    var functionCursors = cursorKinds.getOrDefault(LibcCursor.KIND_FUNCTION, List.of()).stream()
-                            .filter(c -> nativeFunctions.contains(c.getSpelling()))
+                    var context = new Context(translationUnit, structWriter, enumWriter);
+                    // lib containing functions
+                    var functionCursors = context.getDeclarations(LibcCursor.KIND_FUNCTION)
+                            .filter(cursor -> nativeFunctions.contains(cursor.getSpelling()))
                             .toList();
-
-                    for (var enumCursor : cursorKinds.getOrDefault(LibcCursor.KIND_ENUM, List.of())) {
-                        enumWriter.write(enumCursor);
-                    }
+                    libFunctionWriter.write(lib.getName(), functionCursors, context);
                 }
-
             }
             getLog().info("finished generating native handlers");
         } catch (Exception e) {
@@ -97,7 +96,7 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
     private LibcCursor parseAst(ObjectMapper objectMapper, Path headerPath) throws IOException {
         var astPath = getWorkingDirectory().toPath().resolve("%s.ast.json".formatted(headerPath.getFileName().toString()));
-        try(var inputStream = new BufferedInputStream(Files.newInputStream(astPath))) {
+        try (var inputStream = new BufferedInputStream(Files.newInputStream(astPath))) {
             return objectMapper.readValue(inputStream, LibcCursor.class);
         }
     }

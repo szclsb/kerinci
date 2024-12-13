@@ -3,6 +3,14 @@ package ch.szclsb.maven.plugins;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LibcType {
+    public static final String KIND_POINTER = "TypeKind.POINTER";
+    public static final String KIND_ELABORATED = "TypeKind.ELABORATED";
+    public static final String KIND_ARRAY = "TypeKind.CONSTANTARRAY";
+    public static final String KIND_INT = "TypeKind.INT";
+    public static final String KIND_FLOAT = "TypeKind.FLOAT";
+    public static final String KIND_CHAR = "TypeKind.CHAR_S";
+    public static final String KIND_VOID = "TypeKind.VOID";
+
     @JsonProperty("kind")
     private String kind;
     @JsonProperty("const")

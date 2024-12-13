@@ -1,5 +1,6 @@
-package ch.szclsb.maven.plugins;
+package ch.szclsb.maven.plugins.writer;
 
+import ch.szclsb.maven.plugins.OutputWriter;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.BufferedWriter;
@@ -11,7 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
 public abstract class FileWriter {
-    private final Log logger;
+    protected final Log logger;
     private final Path dir;
 
     public FileWriter(Log logger, Path dir) {
@@ -26,6 +27,7 @@ public abstract class FileWriter {
                 StandardOpenOption.WRITE, StandardOpenOption.CREATE)))) {
             outputWriter.write(writer);
             Files.move(tmpFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+//            logger.info(String.format("Wrote file %s", file));
         } catch (IOException ioe) {
             logger.error(ioe.getMessage(), ioe);
         } finally {

@@ -9,7 +9,9 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class LibcCursor {
     public static final String KIND_FUNCTION = "CursorKind.FUNCTION_DECL";
+    public static final String KIND_PARAMETER = "CursorKind.PARM_DECL";
     public static final String KIND_STRUCT = "CursorKind.STRUCT_DECL";
+    public static final String KIND_FIELD = "CursorKind.FIELD_DECL";
     public static final String KIND_ENUM = "CursorKind.ENUM_DECL";
     public static final String KIND_ENUM_CONST = "CursorKind.ENUM_CONSTANT_DECL";
     public static final String KIND_REF_EXPR = "CursorKind.DECL_REF_EXPR";
