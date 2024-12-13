@@ -29,8 +29,8 @@ public class StructWriter extends FileWriter {
     private StructField declare(String name, LibcCursor typeCursor, Context context) throws IOException {
         var typeName = typeCursor.getSpelling();
         return switch (typeName) {
-            case "uint32_t" -> new StructField(name, "JAVA_INT", 4);
-            case "uint64_t" -> new StructField(name, "JAVA_LONG", 8);
+            case "int32_t", "uint32_t" -> new StructField(name, "JAVA_INT", 4);
+            case "int64_t", "uint64_t" -> new StructField(name, "JAVA_LONG", 8);
             default -> {
                 var decl = context.declare(typeName);
                 yield switch (decl.kind()) {

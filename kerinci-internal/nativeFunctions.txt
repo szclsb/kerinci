@@ -97,3 +97,29 @@ vkCreateFence
 vkResetFences
 vkDestroyFence
 vkWaitForFences
+
+-- Vulkan Descriptors
+vkCreateDescriptorSetLayout
+vkDestroyDescriptorSetLayout
+vkCreateDescriptorPool
+vkResetDescriptorPool
+vkDestroyDescriptorPool
+vkAllocateDescriptorSets
+vkUpdateDescriptorSets
+vkFreeDescriptorSets
+
+-- Vulkan Pipeline
+vkCreatePipelineLayout
+vkDestroyPipelineLayout
+
+-- Vulkan Commands
+vkCmdBeginRenderPass
+vkCmdEndRenderPass
+vkCmdPushConstants
+vkCmdSetViewport
+vkCmdSetScissor
+vkCmdBindDescriptorSets
+vkCmdBindVertexBuffers
+vkCmdBindIndexBuffer
+vkCmdDrawIndexed
+vkCmdDraw

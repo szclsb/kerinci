@@ -48,8 +48,8 @@ public class FunctionWriter extends FileWriter {
         return getType(cursor.getType(), () -> {
             var e = cursor.getChildren().getFirst().getSpelling();
             return switch (e) {
-                case "uint32_t" -> "int";
-                case "uint64_t" -> "long";
+                case "int32_t", "uint32_t" -> "int";
+                case "int64_t", "uint64_t" -> "long";
                 default -> {
                     context.declare(e);
                     yield e;
