@@ -25,17 +25,21 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
     private File nativeFunctionsPath;
     @Parameter(property = "nativeFunctionsPrefix", defaultValue = "_")
     private String nativeFunctionsPrefix;
+    @Parameter(property = "glfwSdk", required = true)
+    private File glfwSdk;
+    @Parameter(property = "vulkanSdk", required = true)
+    private File vulkanSdk;
+    @Parameter(property = "defineMacros")
+    private Collection<String> defineMacros;
+    @Parameter(property = "targetPackage")
+    private String targetPackage;
     @Parameter(property = "target", defaultValue = "target/generated-sources")
     private File target;
-
-    @Parameter(property = "libs")
-    private Collection<Lib> libs;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         generateNativeLib();
         generateNativeHandlers();
-//        generateNativeHandlers();
 
         // add additional source root
         getProject().addCompileSourceRoot(target.getAbsolutePath());
@@ -66,27 +70,30 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
                     .filter(line -> !line.startsWith("--"))
                     .forEach(nativeFunctions::add);
 
+            var libs = List.of(
+                    // todo glm
+                    new Lib("glwf", glfwSdk.toPath().resolve("include/GLFW/glfw3.h")),
+                    new Lib("vulkan", vulkanSdk.toPath().resolve("vulkan/vulkan_core.h"))
+            );
+
+            var outputPath = target.toPath().resolve(targetPackage.replace(".", "/"));
+            getLog().info("prepareOutputDirectory: " + outputPath);
+            prepareDir(outputPath);
+
             var objectMapper = new ObjectMapper();
-            for (var targetLib : libs.stream().collect(Collectors.groupingBy(Lib::getTargetPackage)).entrySet()) {
-                var targetPackage = targetLib.getKey();
-                var outputPath = target.toPath().resolve(targetPackage.replace(".", "/"));
-                getLog().info("prepareOutputDirectory: " + outputPath);
-                prepareDir(outputPath);
+            var enumWriter = new EnumWriter(getLog(), outputPath, targetPackage);
+            var structWriter = new StructWriter(getLog(), outputPath, targetPackage);
+            var libFunctionWriter = new FunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
 
-                var enumWriter = new EnumWriter(getLog(), outputPath, targetPackage);
-                var structWriter = new StructWriter(getLog(), outputPath, targetPackage);
-                var libFunctionWriter = new FunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
-
-                for (var lib : targetLib.getValue()) {
-                    getLog().info("start generating native library " + lib.getName());
-                    var translationUnit = parseAst(objectMapper, lib.getHeader().toPath());
-                    var context = new Context(translationUnit, structWriter, enumWriter);
-                    // lib containing functions
-                    var functionCursors = context.getDeclarations(LibcCursor.KIND_FUNCTION)
-                            .filter(cursor -> nativeFunctions.contains(cursor.getSpelling()))
-                            .toList();
-                    libFunctionWriter.write(lib.getName(), functionCursors, context);
-                }
+            for (var lib : libs) {
+                getLog().info("start generating native library " + lib.name());
+                var translationUnit = parseAst(objectMapper, lib.header());
+                var context = new Context(translationUnit, structWriter, enumWriter);
+                // lib containing functions
+                var functionCursors = context.getDeclarations(LibcCursor.KIND_FUNCTION)
+                        .filter(cursor -> nativeFunctions.contains(cursor.getSpelling()))
+                        .toList();
+                libFunctionWriter.write(lib.name(), functionCursors, context);
             }
             getLog().info("finished generating native handlers");
         } catch (Exception e) {
@@ -100,34 +107,4 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
             return objectMapper.readValue(inputStream, LibcCursor.class);
         }
     }
-
-//    private void generateNativeHandlers() throws MojoExecutionException {
-//        getLog().info("start generating native handlers");
-//        for (var libDefinition : libs) {
-//            getLog().info("Generating native handle for " + libDefinition.getName());
-//            var args = new ArrayList<String>();
-//            args.add("jextract" + (windows ? ".bat" : ""));
-//            args.add("--source");
-//            libDefinition.getIncludeDirs().forEach(includeDir -> {
-//                args.add("--include-dir");
-//                args.add(includeDir);
-//            });
-//            if (libDefinition.getDefineMacros() != null) {
-//                libDefinition.getDefineMacros().forEach(defineMarco -> {
-//                    args.add("--define-macro");
-//                    args.add(defineMarco);
-//                });
-//            }
-//            args.add("--output");
-//            args.add(target);
-//            args.add("--target-package");
-//            args.add(libDefinition.getTargetPackage());
-//            args.add("--library");
-//            args.add(libDefinition.getLibrary());
-//            args.add(libDefinition.getHeader());
-//
-//            executeCommands(new CommandLine(args.toArray(String[]::new)));
-//        }
-//        getLog().info("finished generating native handlers");
-//    }
 }

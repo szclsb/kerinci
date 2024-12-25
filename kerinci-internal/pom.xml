@@ -69,19 +69,10 @@
                     <nativePath>${nativeLibDir}</nativePath>
                     <nativeBuildPath>${dllBuildDir}</nativeBuildPath>
                     <nativeFunctionsPath>${project.basedir}/nativeFunctions.txt</nativeFunctionsPath>
+                    <glfwSdk>${glfwSdk}</glfwSdk>
+                    <vulkanSdk>${vulkanSdk}</vulkanSdk>
+                    <targetPackage>ch.szclsb.kerinci.api</targetPackage>
                     <target>${nativeOutputDir}</target>
-                    <libs>
-                        <lib>
-                            <name>Glfw</name>
-                            <header>${glfwSdk}/include/GLFW/glfw3.h</header>
-                            <targetPackage>ch.szclsb.kerinci.api</targetPackage>
-                        </lib>
-                        <lib>
-                            <name>Vulkan</name>
-                            <header>${vulkanSdk}/vulkan/vulkan_core.h</header>
-                            <targetPackage>ch.szclsb.kerinci.api</targetPackage>
-                        </lib>
-                    </libs>
                 </configuration>
             </plugin>
         </plugins>
