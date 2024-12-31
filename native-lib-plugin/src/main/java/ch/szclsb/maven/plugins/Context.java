@@ -4,20 +4,23 @@ import ch.szclsb.maven.plugins.writer.EnumWriter;
 import ch.szclsb.maven.plugins.writer.StructWriter;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Context {
     public record Declaration(
-            String kind,
+            List<String> typeChain,
+            String javaType,
+            String javaLayout,
             int bytes
     ) {
+        public boolean isFlag() {
+            return typeChain.contains("VkFlag");
+        }
 
+        public boolean isHandle() {
+            return typeChain.getLast().endsWith("_T");
+        }
     }
 
     private static final Set<String> cursorKinds = Set.of(
@@ -27,20 +30,47 @@ public class Context {
     );
 
     private final Map<String, LibcCursor> declarations;
+    private final Map<String, String> typedefs;
     private final Map<String, Integer> structSizes;
     private final Set<String> enumNames;
     private final StructWriter structWriter;
     private final EnumWriter enumWriter;
 
     public Context(LibcCursor translationUnit, StructWriter structWriter, EnumWriter enumWriter) {
-        this.declarations = translationUnit.getChildren().stream()
-                .filter(cursor -> cursorKinds.contains(cursor.getKind()))
-                .collect(Collectors.toMap(LibcCursor::getSpelling, Function.identity()));
+        this.declarations = new HashMap<>();
+        this.typedefs = new HashMap<>();
+//        this.handles = new HashMap<>();
+        for (var declCursor : translationUnit.getChildren()) {
+            if (cursorKinds.contains(declCursor.getKind())) {
+                declarations.put(declCursor.getSpelling(), declCursor);
+            } else if (LibcCursor.KIND_TYPEDEF.equals(declCursor.getKind())) {
+                // type definitions
+                declCursor.getChildren().stream()
+                        .filter(c -> LibcCursor.KIND_TYPEREF.equals(c.getKind()))
+                        .findFirst()
+                        .ifPresent(a -> {
+                            var typeRef = a.getSpelling();
+                            if (typeRef.startsWith("struct ")) {
+                                var structType = typeRef.substring(7);
+                                addTypeDef(declCursor.getSpelling(), structType);
+                            } else {
+                                addTypeDef(declCursor.getSpelling(), typeRef);
+                            }
+                        });
+            }
+        }
         this.structSizes = new HashMap<>();
         this.enumNames = new HashSet<>();
         this.structWriter = structWriter;
         this.enumWriter = enumWriter;
     }
+
+    private void addTypeDef(String ref, String type) {
+        if (!ref.equals(type)) {
+            typedefs.put(ref, type);
+        }
+    }
+
 
     public Stream<LibcCursor> getDeclarations() {
         return declarations.values().stream();
@@ -51,30 +81,42 @@ public class Context {
     }
 
     /**
-     *
-     * @param name
      * @return
      * @throws IOException
      */
-    public synchronized Declaration declare(String name) throws IOException {
-        var cursor = declarations.get(name);
+    public synchronized Declaration declare(String typeName) throws IOException {
+        var typeChain = new LinkedList<String>();
+        var tn = typeName;
+        while (tn != null) {
+            typeChain.add(tn);
+            tn = typedefs.get(tn);
+        }
+
+        var actualType = typeChain.getLast();
+
+        var cursor = declarations.get(actualType);
         if (cursor == null) {
-            return new Declaration("XXX", 0);  //FIXME typedefs and function pointer
+            return switch (actualType) {
+                case "bool", "VkBool32" -> new Declaration(typeChain, "bool", "JAVA_BOOLEAN", 1);
+                case "int32_t", "uint32_t" -> new Declaration(typeChain, "int", "JAVA_INT", 4);
+                case "int64_t", "uint64_t" -> new Declaration(typeChain, "long", "JAVA_LONG", 4);
+                default -> null;
+            };
         }
         if (LibcCursor.KIND_ENUM.equals(cursor.getKind())) {
-            if (!enumNames.contains(name)) {
-                enumWriter.write(cursor);
-                enumNames.add(name);
+            if (!enumNames.contains(typeName)) {
+                enumWriter.write(typeName, cursor);
+                enumNames.add(typeName);
             }
-            return new Declaration(LibcCursor.KIND_ENUM, 4);
+            return new Declaration(typeChain, typeName, "JAVA_INT", 4);
         } else if (LibcCursor.KIND_STRUCT.equals(cursor.getKind())) {
-            if (structSizes.containsKey(name)) {
-                return new Declaration(LibcCursor.KIND_STRUCT, structSizes.get(name));
+            var structSize = structSizes.get(typeName);
+            if (structSize == null) {
+                structSize = structWriter.write(typeName, cursor, this);
+                structSizes.put(typeName, structSize);
             }
-            var structSize = structWriter.write(cursor, this);
-            structSizes.put(name, structSize);
-            return new Declaration(LibcCursor.KIND_STRUCT, structSize);
+            return new Declaration(typeChain, typeName, typeName + ".LAYOUT", structSize);
         }
-        throw new IllegalArgumentException("Unknown kind: " + cursor.getKind());
+        return null;
     }
 }

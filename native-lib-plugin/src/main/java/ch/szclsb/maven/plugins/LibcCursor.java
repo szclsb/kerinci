@@ -16,6 +16,8 @@ public class LibcCursor {
     public static final String KIND_ENUM_CONST = "CursorKind.ENUM_CONSTANT_DECL";
     public static final String KIND_REF_EXPR = "CursorKind.DECL_REF_EXPR";
     public static final String KIND_INT_LITERAL = "CursorKind.INTEGER_LITERAL";
+    public static final String KIND_TYPEDEF = "CursorKind.TYPEDEF_DECL";
+    public static final String KIND_TYPEREF = "CursorKind.TYPE_REF";
 
     private String kind;
     private String spelling;

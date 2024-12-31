@@ -47,14 +47,8 @@ public class FunctionWriter extends FileWriter {
     private String getJavaType(LibcCursor cursor, Context context) throws IOException {
         return getType(cursor.getType(), () -> {
             var e = cursor.getChildren().getFirst().getSpelling();
-            return switch (e) {
-                case "int32_t", "uint32_t" -> "int";
-                case "int64_t", "uint64_t" -> "long";
-                default -> {
-                    context.declare(e);
-                    yield e;
-                }
-            };
+            var decl = context.declare(e);
+            return decl != null ? decl.javaType() : "Object";  // fixme
         });
     }
 

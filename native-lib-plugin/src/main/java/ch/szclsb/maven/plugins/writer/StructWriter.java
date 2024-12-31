@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class StructWriter extends FileWriter {
     public record StructField(
@@ -28,24 +27,22 @@ public class StructWriter extends FileWriter {
 
     private StructField declare(String name, LibcCursor typeCursor, Context context) throws IOException {
         var typeName = typeCursor.getSpelling();
-        return switch (typeName) {
-            case "int32_t", "uint32_t" -> new StructField(name, "JAVA_INT", 4);
-            case "int64_t", "uint64_t" -> new StructField(name, "JAVA_LONG", 8);
-            default -> {
-                var decl = context.declare(typeName);
-                yield switch (decl.kind()) {
-                    case LibcCursor.KIND_ENUM -> new StructField(name, "JAVA_INT", 4);
-                    case LibcCursor.KIND_STRUCT -> new StructField(name, typeName + ".LAYOUT", decl.bytes());
-                    case "XXX" -> new StructField(name, "ADDRESS", 8);  //TODO typeref and function pointer
-                    default -> throw new IllegalArgumentException("Unexpected declaration: " + decl.kind());
-                };
-            }
-        };
+        var decl = context.declare(typeName);
+        return decl != null
+                ? new StructField(name, decl.javaLayout(), decl.bytes())
+                : new StructField(name, "UNDEFINED", 8);  //TODO typeref and function pointer
     }
 
-    public int write(LibcCursor structCursor, Context context) throws IOException {
-        var className = structCursor.getSpelling();
-        logger.info("-- declaring struct: " + className);
+    /**
+     *
+     * @param className
+     * @param structCursor
+     * @param context
+     * @return
+     * @throws IOException
+     */
+    public int write(String className, LibcCursor structCursor, Context context) throws IOException {
+        logger.info("-- declaring struct: %s (%s)".formatted(className, structCursor.getSpelling()));
         var fields = new ArrayList<StructField>();
         for (var fieldCursor : structCursor.getChildren()) {
             if (LibcCursor.KIND_FIELD.equals(fieldCursor.getKind())) {
@@ -75,6 +72,8 @@ public class StructWriter extends FileWriter {
                     import java.lang.foreign.StructLayout;
                     
                     import static java.lang.foreign.ValueLayout.ADDRESS;
+                    import static java.lang.foreign.ValueLayout.JAVA_BOOLEAN;
+                    import static java.lang.foreign.ValueLayout.JAVA_LONG;
                     import static java.lang.foreign.ValueLayout.JAVA_INT;
                     import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
                     

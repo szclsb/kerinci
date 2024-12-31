@@ -15,9 +15,8 @@ public class EnumWriter extends FileWriter {
         this.generatedPackage = generatedPackage;
     }
 
-    public void write(LibcCursor enumCursor) throws IOException {
-        var className = enumCursor.getSpelling();
-        logger.info("-- declaring enum: " + className);
+    public void write(String className, LibcCursor enumCursor) throws IOException {
+        logger.info("-- declaring enum: %s (%s)".formatted(className, enumCursor.getSpelling()));
 
         var enumConst = new ArrayList<String>();
 

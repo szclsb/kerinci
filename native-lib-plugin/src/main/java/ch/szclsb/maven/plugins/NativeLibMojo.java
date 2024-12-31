@@ -13,7 +13,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Mojo(name = "native-lib")
 public class NativeLibMojo extends AbstractCommandProcessMojo {
@@ -72,8 +71,8 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
             var libs = List.of(
                     // todo glm
-                    new Lib("glwf", glfwSdk.toPath().resolve("include/GLFW/glfw3.h")),
-                    new Lib("vulkan", vulkanSdk.toPath().resolve("vulkan/vulkan_core.h"))
+                    new Lib("GLFW", glfwSdk.toPath().resolve("include/GLFW/glfw3.h")),
+                    new Lib("Vulkan", vulkanSdk.toPath().resolve("vulkan/vulkan_core.h"))
             );
 
             var outputPath = target.toPath().resolve(targetPackage.replace(".", "/"));
