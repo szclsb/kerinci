@@ -23,17 +23,19 @@ public class LibcCursor {
     private String spelling;
     private LibcType type;
     private LibcType resultType;
+    private LibcType underlyingTypedefType;
     private List<LibcCursor> children;
 
     public LibcCursor() {
         this.children = new ArrayList<>();
     }
 
-    public LibcCursor(String kind, String spelling, LibcType type, LibcType resultType, List<LibcCursor> children) {
+    public LibcCursor(String kind, String spelling, LibcType type, LibcType resultType, LibcType underlyingTypedefType, List<LibcCursor> children) {
         this.kind = kind;
         this.spelling = spelling;
         this.type = type;
         this.resultType = resultType;
+        this.underlyingTypedefType = underlyingTypedefType;
         this.children = children;
     }
 
@@ -67,6 +69,14 @@ public class LibcCursor {
 
     public void setResultType(LibcType resultType) {
         this.resultType = resultType;
+    }
+
+    public LibcType getUnderlyingTypedefType() {
+        return underlyingTypedefType;
+    }
+
+    public void setUnderlyingTypedefType(LibcType underlyingTypedefType) {
+        this.underlyingTypedefType = underlyingTypedefType;
     }
 
     public List<LibcCursor> getChildren() {

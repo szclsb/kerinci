@@ -13,6 +13,7 @@ def parse_type(type):
     return {
         "kind": str(type.kind),
         "const": type.is_const_qualified(),
+        "result": parse_type(type.get_result()),
         "ref": parse_type(type.get_pointee()),
     }
 
@@ -24,7 +25,8 @@ def parse(cursor):
         "kind": str(cursor.kind),
         "spelling": next(cursor.get_tokens()).spelling if is_literal(cursor) else cursor.spelling,
         "type":  parse_type(cursor.type),
-        "result_type": parse_type(cursor.result_type),
+        "result_type":  parse_type(cursor.result_type),
+        "underlying_typedef_type": parse_type(cursor.underlying_typedef_type) if cursor.kind == clang.cindex.CursorKind.TYPEDEF_DECL else None,
         "children": children
     }
 

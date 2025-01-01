@@ -15,15 +15,18 @@ public class LibcType {
     private String kind;
     @JsonProperty("const")
     private boolean constValue;
+    @JsonProperty("result")
+    private LibcType result;
     @JsonProperty("ref")
     private LibcType ref;
 
     public LibcType() {
     }
 
-    public LibcType(String kind, boolean constValue, LibcType ref) {
+    public LibcType(String kind, boolean constValue, LibcType result, LibcType ref) {
         this.kind = kind;
         this.constValue = constValue;
+        this.result = result;
         this.ref = ref;
     }
 
@@ -41,6 +44,14 @@ public class LibcType {
 
     public void setConstValue(boolean constValue) {
         this.constValue = constValue;
+    }
+
+    public LibcType getResult() {
+        return result;
+    }
+
+    public void setResult(LibcType result) {
+        this.result = result;
     }
 
     public LibcType getRef() {
