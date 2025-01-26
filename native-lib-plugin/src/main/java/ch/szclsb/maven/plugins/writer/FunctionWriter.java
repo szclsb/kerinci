@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static ch.szclsb.maven.plugins.Context.getFlagBitsType;
+
 public class FunctionWriter extends FileWriter {
     @FunctionalInterface
     public interface ElaboratedResolver {
@@ -48,7 +50,15 @@ public class FunctionWriter extends FileWriter {
         return getType(cursor.getType(), () -> {
             var e = cursor.getChildren().getFirst().getSpelling();
             var decl = context.declare(e);
-            return decl != null ? decl.javaType() : "Object";  // fixme
+            if (decl != null) {
+                if (decl.isFlag()) {
+                    return "Set<%s>".formatted(getFlagBitsType(e));
+                }
+//                if (decl.isHandle()) {
+//                }
+                return decl.javaType();
+            }
+            return "Object";  // fixme
         });
     }
 
@@ -57,6 +67,11 @@ public class FunctionWriter extends FileWriter {
             writer.write("""
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %s;
+                    
+                    import java.util.Arrays;
+                    import java.util.List;
+                    import java.util.Set;
+                    import java.util.stream.Stream;
                     
                     public class %s {
                     """.formatted(generatedPackage, libName));

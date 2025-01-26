@@ -8,6 +8,12 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class Context {
+    private static final String VK_FLAGS = "VkFlags";
+
+    public static String getFlagBitsType(String flags) {
+        return flags == null || flags.isBlank() ? null : flags.replace("Flags", "FlagBits");
+    }
+
     public record Declaration(
             List<String> typeChain,
             String javaType,
@@ -15,7 +21,7 @@ public class Context {
             int bytes
     ) {
         public boolean isFlag() {
-            return typeChain.contains("VkFlag");
+            return typeChain.contains(VK_FLAGS);
         }
 
         public boolean isHandle() {
@@ -93,6 +99,11 @@ public class Context {
         }
 
         var actualType = typeChain.getLast();
+
+        if (typeChain.contains(VK_FLAGS)) {
+            var flagBitsType = getFlagBitsType(typeName);
+            declare(flagBitsType);  // declare flag bit enums
+        }
 
         var cursor = declarations.get(actualType);
         if (cursor == null) {
