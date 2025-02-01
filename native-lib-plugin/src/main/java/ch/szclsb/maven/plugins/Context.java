@@ -102,7 +102,9 @@ public class Context {
 
         if (typeChain.contains(VK_FLAGS)) {
             var flagBitsType = getFlagBitsType(typeName);
-            declare(flagBitsType);  // declare flag bit enums
+            if (declare(flagBitsType) == null) {  // declare flag bit enums
+                return null;  // abort if corresponding bits are not present
+            }
         }
 
         var cursor = declarations.get(actualType);

@@ -34,20 +34,20 @@ public class FunctionWriter extends FileWriter {
         this.functionPrefix = functionPrefix;
     }
 
-    private String getType(LibcType type, ElaboratedResolver resolver) throws IOException {
+    private String getType(int level, LibcType type, ElaboratedResolver resolver) throws IOException {
         return switch (type.getKind()) {
-            case LibcType.KIND_POINTER -> getType(type.getRef(), resolver);
+            case LibcType.KIND_POINTER -> getType(level + 1, type.getRef(), resolver);
             case LibcType.KIND_ELABORATED -> resolver.get();
-            case LibcType.KIND_VOID -> "void";
-            case LibcType.KIND_INT -> "int";
-            case LibcType.KIND_FLOAT -> "float";
+            case LibcType.KIND_VOID -> level > 0 ? "Object" : "void";
+            case LibcType.KIND_INT -> level > 0 ? "Integer" : "int";
+            case LibcType.KIND_FLOAT -> level > 0 ? "Float" : "float";
             case LibcType.KIND_CHAR -> "String";
             default -> throw new IllegalArgumentException("Unknown libc type: " + type.getKind());
         };
     }
 
     private String getJavaType(LibcCursor cursor, Context context) throws IOException {
-        return getType(cursor.getType(), () -> {
+        return getType(0, cursor.getType(), () -> {
             var e = cursor.getChildren().getFirst().getSpelling();
             var decl = context.declare(e);
             if (decl != null) {
@@ -58,7 +58,7 @@ public class FunctionWriter extends FileWriter {
 //                }
                 return decl.javaType();
             }
-            return "Object";  // fixme
+            return null;
         });
     }
 
@@ -85,7 +85,12 @@ public class FunctionWriter extends FileWriter {
                     if (LibcCursor.KIND_PARAMETER.equals(childCursor.getKind())) {
                         var paramName = childCursor.getSpelling();
                         logger.debug("---- resolving parameter: %s".formatted(paramName));
-                        params.add(new FunctionParam(getJavaType(childCursor, context), paramName));
+                        var javaType = getJavaType(childCursor, context);
+                        if (javaType != null) {
+                            params.add(new FunctionParam(getJavaType(childCursor, context), paramName));
+                        } else {
+                            logger.warn("---- ignoring parameter %s, because resolved java type is null".formatted(paramName));
+                        }
                     }
                 }
 
