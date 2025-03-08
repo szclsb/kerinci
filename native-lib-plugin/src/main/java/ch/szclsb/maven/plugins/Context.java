@@ -5,6 +5,7 @@ import ch.szclsb.maven.plugins.writer.StructWriter;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class Context {
@@ -14,19 +15,32 @@ public class Context {
         return flags == null || flags.isBlank() ? null : flags.replace("Flags", "FlagBits");
     }
 
+    public record TypeRef(String name, int pointer) {
+        public TypeRef(String name) {
+            this(name, 0);
+        }
+    }
+
     public record Declaration(
-            List<String> typeChain,
+            String cursorKind,
+            List<TypeRef> typeChain,
             String javaType,
             String javaLayout,
-            int bytes
+            long bytes
     ) {
         public boolean isFlag() {
-            return typeChain.contains(VK_FLAGS);
+            return typeChain.stream().anyMatch(typeRef -> typeRef.name().contains(VK_FLAGS));
         }
 
-        public boolean isHandle() {
-            return typeChain.getLast().endsWith("_T");
+        public boolean isPointer() {
+            return typeChain.stream()
+                    .mapToInt(TypeRef::pointer)
+                    .sum() > 0;
         }
+
+//        public boolean isHandle() {
+//            return typeChain.getLast().endsWith("_T");
+//        }
     }
 
     private static final Set<String> cursorKinds = Set.of(
@@ -36,8 +50,8 @@ public class Context {
     );
 
     private final Map<String, LibcCursor> declarations;
-    private final Map<String, String> typedefs;
-    private final Map<String, Integer> structSizes;
+    private final Map<String, TypeRef> typedefs;
+    private final Map<String, Long> structSizes;
     private final Set<String> enumNames;
     private final StructWriter structWriter;
     private final EnumWriter enumWriter;
@@ -51,18 +65,27 @@ public class Context {
                 declarations.put(declCursor.getSpelling(), declCursor);
             } else if (LibcCursor.KIND_TYPEDEF.equals(declCursor.getKind())) {
                 // type definitions
-                declCursor.getChildren().stream()
-                        .filter(c -> LibcCursor.KIND_TYPEREF.equals(c.getKind()))
-                        .findFirst()
-                        .ifPresent(a -> {
-                            var typeRef = a.getSpelling();
-                            if (typeRef.startsWith("struct ")) {
-                                var structType = typeRef.substring(7);
-                                addTypeDef(declCursor.getSpelling(), structType);
-                            } else {
-                                addTypeDef(declCursor.getSpelling(), typeRef);
-                            }
-                        });
+                var pointer = new AtomicInteger(0);
+                var refType = declCursor.getUnderlyingTypedefType();
+                while (LibcType.KIND_POINTER.equals(refType.getKind())) {
+                    pointer.getAndIncrement();
+                    refType = refType.getRef();
+                }
+
+                if (LibcType.KIND_ELABORATED.equals(refType.getKind())) {
+                    declCursor.getChildren().stream()
+                            .filter(c -> LibcCursor.KIND_TYPEREF.equals(c.getKind()))
+                            .findFirst()
+                            .ifPresent(a -> {
+                                var typeRef = a.getSpelling();
+                                if (typeRef.startsWith("struct ")) {
+                                    var structType = typeRef.substring(7);
+                                    addTypeDef(declCursor.getSpelling(), structType, pointer.get());
+                                } else {
+                                    addTypeDef(declCursor.getSpelling(), typeRef, pointer.get());
+                                }
+                            });
+                }
             }
         }
         this.structSizes = new HashMap<>();
@@ -71,9 +94,9 @@ public class Context {
         this.enumWriter = enumWriter;
     }
 
-    private void addTypeDef(String ref, String type) {
+    private void addTypeDef(String ref, String type, int pointer) {
         if (!ref.equals(type)) {
-            typedefs.put(ref, type);
+            typedefs.put(ref, new TypeRef(type, pointer));
         }
     }
 
@@ -91,28 +114,28 @@ public class Context {
      * @throws IOException
      */
     public synchronized Declaration declare(String typeName) throws IOException {
-        var typeChain = new LinkedList<String>();
-        var tn = typeName;
+        var typeChain = new LinkedList<TypeRef>();
+        var tn = new TypeRef(typeName);
         while (tn != null) {
             typeChain.add(tn);
-            tn = typedefs.get(tn);
+            tn = typedefs.get(tn.name());
         }
 
         var actualType = typeChain.getLast();
 
-        if (typeChain.contains(VK_FLAGS)) {
+        if (typeChain.stream().anyMatch(typeRef -> typeRef.name().contains(VK_FLAGS))) {
             var flagBitsType = getFlagBitsType(typeName);
             if (declare(flagBitsType) == null) {  // declare flag bit enums
                 return null;  // abort if corresponding bits are not present
             }
         }
 
-        var cursor = declarations.get(actualType);
+        var cursor = declarations.get(actualType.name());
         if (cursor == null) {
-            return switch (actualType) {
-                case "bool", "VkBool32" -> new Declaration(typeChain, "bool", "JAVA_BOOLEAN", 1);
-                case "int32_t", "uint32_t" -> new Declaration(typeChain, "int", "JAVA_INT", 4);
-                case "int64_t", "uint64_t" -> new Declaration(typeChain, "long", "JAVA_LONG", 4);
+            return switch (actualType.name()) {
+                case "bool", "VkBool32" -> new Declaration(null, typeChain, "bool", "JAVA_BOOLEAN", 1);
+                case "int32_t", "uint32_t" -> new Declaration(null, typeChain, "int", "JAVA_INT", 4);
+                case "int64_t", "uint64_t" -> new Declaration(null, typeChain, "long", "JAVA_LONG", 8);
                 default -> null;
             };
         }
@@ -121,14 +144,14 @@ public class Context {
                 enumWriter.write(typeName, cursor);
                 enumNames.add(typeName);
             }
-            return new Declaration(typeChain, typeName, "JAVA_INT", 4);
+            return new Declaration(LibcCursor.KIND_ENUM, typeChain, typeName, "JAVA_INT", 4);
         } else if (LibcCursor.KIND_STRUCT.equals(cursor.getKind())) {
             var structSize = structSizes.get(typeName);
             if (structSize == null) {
                 structSize = structWriter.write(typeName, cursor, this);
                 structSizes.put(typeName, structSize);
             }
-            return new Declaration(typeChain, typeName, typeName + ".LAYOUT", structSize);
+            return new Declaration(LibcCursor.KIND_ENUM, typeChain, typeName, typeName + ".LAYOUT", structSize);
         }
         return null;
     }

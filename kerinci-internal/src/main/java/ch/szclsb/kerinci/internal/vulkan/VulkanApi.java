@@ -79,6 +79,8 @@ public class VulkanApi implements AutoCloseable {
         }
         var instance = pInstance.get(ADDRESS, 0);
         logger.debug("Created vulkan instance {}", printAddress(instance));
+
+        KrcCommandPool.$LAYOUT()
         return instance;
     }
 

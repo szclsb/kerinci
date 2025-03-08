@@ -117,7 +117,7 @@ public class Swapchain implements AutoCloseable {
             imageCount = maxImageCount;
         }
 
-        this.swapChainImageFormat = Context.INSTANCE.getEnum(VkSurfaceFormatKHR.format$get(format), KrcFormat.class);
+        this.swapChainImageFormat = Runtime.INSTANCE.getEnum(VkSurfaceFormatKHR.format$get(format), KrcFormat.class);
 //        this.extentSegment = arena.allocate(VkExtent2D.$LAYOUT());
 //        KrcExtentFactory.write2D(swapchainExtend, extentSegment);
 

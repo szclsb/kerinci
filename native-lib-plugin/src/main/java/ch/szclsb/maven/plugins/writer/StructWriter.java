@@ -3,18 +3,28 @@ package ch.szclsb.maven.plugins.writer;
 import ch.szclsb.maven.plugins.Context;
 import ch.szclsb.maven.plugins.LibcCursor;
 import ch.szclsb.maven.plugins.LibcType;
+import ch.szclsb.maven.plugins.writer.convertor.EnumConvertor;
+import ch.szclsb.maven.plugins.writer.convertor.FieldConverter;
+import ch.szclsb.maven.plugins.writer.convertor.PointerConvertor;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class StructWriter extends FileWriter {
+    private final FieldConverter defaultFieldConverter = new FieldConverter();
+    private final FieldConverter enumFieldConverter = new EnumConvertor();
+    private final FieldConverter refFieldConvertor = new PointerConvertor();
+
     public record StructField(
             String name,
             String layout,
-            int bytes
+            FieldConverter converter,
+            long bytes,
+            String javaType
     ) {
     }
 
@@ -28,20 +38,23 @@ public class StructWriter extends FileWriter {
     private StructField declare(String name, LibcCursor typeCursor, Context context) throws IOException {
         var typeName = typeCursor.getSpelling();
         var decl = context.declare(typeName);
-        return decl != null
-                ? new StructField(name, decl.javaLayout(), decl.bytes())
-                : new StructField(name, "UNDEFINED", 8);  //TODO typeref and function pointer
+        if (decl == null) {
+            return new StructField(name, "UNDEFINED", defaultFieldConverter, 8, "MemoryLayout");  //TODO typeref and function pointer;
+        }
+        if (decl.isPointer()) {
+            return new StructField(name, "ADDRESS", refFieldConvertor, 8, decl.javaType());
+        }
+        return new StructField(name, decl.javaLayout(), LibcCursor.KIND_ENUM.equals(decl.cursorKind()) ? enumFieldConverter : defaultFieldConverter, decl.bytes(), decl.javaType());
     }
 
     /**
-     *
      * @param className
      * @param structCursor
      * @param context
      * @return
      * @throws IOException
      */
-    public int write(String className, LibcCursor structCursor, Context context) throws IOException {
+    public long write(String className, LibcCursor structCursor, Context context) throws IOException {
         logger.info("-- declaring struct: %s (%s)".formatted(className, structCursor.getSpelling()));
         var fields = new ArrayList<StructField>();
         for (var fieldCursor : structCursor.getChildren()) {
@@ -50,16 +63,17 @@ public class StructWriter extends FileWriter {
                 logger.debug("---- resolving field: %s".formatted(fieldName));
                 fields.add(switch (fieldCursor.getType().getKind()) {
                     case LibcType.KIND_ELABORATED -> declare(fieldName, fieldCursor.getChildren().getFirst(), context);
-                    case LibcType.KIND_POINTER, LibcType.KIND_ARRAY -> new StructField(fieldName, "ADDRESS", 8);
-                    case LibcType.KIND_INT -> new StructField(fieldName, "JAVA_INT", 4);
-                    case LibcType.KIND_FLOAT -> new StructField(fieldName, "JAVA_FLOAT", 4);
+                    case LibcType.KIND_POINTER, LibcType.KIND_ARRAY ->
+                            new StructField(fieldName, "ADDRESS", defaultFieldConverter, 8, "MemorySegment");
+                    case LibcType.KIND_INT -> new StructField(fieldName, "JAVA_INT", defaultFieldConverter, 4, "int");
+                    case LibcType.KIND_FLOAT -> new StructField(fieldName, "JAVA_FLOAT", defaultFieldConverter, 4, "float");
                     default ->
                             throw new IllegalArgumentException("Unexpected field type king: " + fieldCursor.getType().getKind());
                 });
             }
         }
 
-        var bytes = new AtomicInteger(0);
+        var bytes = new AtomicLong(0);
         writeFile(className, writer -> {
             writer.write("""
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
@@ -80,17 +94,20 @@ public class StructWriter extends FileWriter {
                     public class %s implements Struct {
                         public static final StructLayout LAYOUT = MemoryLayout.structLayout(
                     """.formatted(generatedPackage, className));
+            var offsets = new HashMap<String, Long>();
             var it = fields.iterator();
             while (it.hasNext()) {
                 var field = it.next();
                 var offset = bytes.get();
-                var padding = offset % 8;
-                if (field.bytes >= 8 && (padding > 0)) {  // todo verify padding
+                var m = offset % field.bytes;
+                if (m > 0) {
+                    var padding = field.bytes - m;
                     writer.write("""
                                     MemoryLayout.paddingLayout(%d),
                             """.formatted(padding));
                     offset += padding;
                 }
+                offsets.put(field.name, offset);
                 writer.write("""
                                 %s.withName("%s")%s
                         """.formatted(field.layout, field.name, it.hasNext() ? "," : ""));
@@ -119,7 +136,25 @@ public class StructWriter extends FileWriter {
                     
                     """.formatted(className));
 
-            // FIXME getter + setter
+            // getter and setter
+            for (var field : fields) {
+                var fieldOffset = offsets.get(field.name);
+                var firstChar = field.name.charAt(0);
+                var fieldName = Character.toUpperCase(firstChar) + field.name.substring(1);
+                var getterAccessor = field.converter.getterAccessor(field);
+                writer.write("""
+                            public %s get%s() {
+                                var value = pSegment.get(%s, %d);
+                                return %s;
+                            }
+                        """.formatted(field.javaType, fieldName, field.layout(), fieldOffset, getterAccessor));
+                var setterAccessor = field.converter.setterAccessor(field);
+                writer.write("""
+                            public void set%s(%s value) {
+                                pSegment.set(%s, %d, %s);
+                            }
+                        """.formatted(fieldName, field.javaType, field.layout(), fieldOffset, setterAccessor));
+            }
 
             writer.write("""
                     }

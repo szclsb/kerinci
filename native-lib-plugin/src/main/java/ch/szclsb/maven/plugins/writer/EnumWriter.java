@@ -42,6 +42,7 @@ public class EnumWriter extends FileWriter {
                     package %s;
                     
                     import ch.szclsb.kerinci.internal.HasValue;
+                    import ch.szclsb.kerinci.internal.Runtime;
                     import lombok.Getter;
                     import lombok.RequiredArgsConstructor;
                     
@@ -56,8 +57,12 @@ public class EnumWriter extends FileWriter {
             writer.write("""
                     
                         private final int value;
+                    
+                        public static %1$s ofValue(int value) {
+                            return Runtime.getConstOfValue(value, %1$s.class);
+                        }
                     }
-                    """);
+                    """.formatted(className));
         });
     }
 }

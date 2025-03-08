@@ -6,26 +6,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Context {
-    public static final Context INSTANCE = new Context();
+public class Runtime {
+    private Runtime () {}
 
-    private Map<Class<?>, Map<Integer, ?>> typeConstants = new HashMap<>();
+    private static final Map<Class<?>, Map<Integer, ?>> typeConstants = initHasValueTypes();
 
-    private Context() {
-        var reflections = new Reflections("ch.szclsb.kerinci.internal");
+    private static Map<Class<?>, Map<Integer, ?>> initHasValueTypes() {
+        var result = new HashMap<Class<?>, Map<Integer, ?>>();
+        var reflections = new Reflections("ch.szclsb.kerinci.api");
         reflections.getSubTypesOf(HasValue.class).forEach(nativeEnum -> {
             if (nativeEnum.isEnum()) {
                 var constants = new TreeMap<Integer, Object>();
                 for (var c : nativeEnum.getEnumConstants()) {
                     constants.putIfAbsent(c.getValue(), c);
                 }
-                typeConstants.put(nativeEnum, constants);
+                result.put(nativeEnum, constants);
             }
         });
+        return result;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends HasValue> T getEnum(int value, Class<T> enumClass) {
+    public static <T extends HasValue> T getConstOfValue(int value, Class<T> enumClass) {
         return (T) typeConstants.get(enumClass).get(value);
     }
 }

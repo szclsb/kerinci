@@ -2,7 +2,7 @@ package ch.szclsb.kerinci.internal.vulkan;
 
 import ch.szclsb.kerinci.api.VkAttachmentDescription;
 import ch.szclsb.kerinci.internal.Allocator;
-import ch.szclsb.kerinci.internal.Context;
+import ch.szclsb.kerinci.internal.Runtime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +39,7 @@ public class KrcAttachmentDescription extends AbstractStruct {
     @Override
     protected void read(MemorySegment pStruct) {
         flags = VkAttachmentDescription.flags$get(pStruct);
-        format = Context.INSTANCE.getEnum(VkAttachmentDescription.format$get(pStruct), KrcFormat.class);
+        format = Runtime.INSTANCE.getEnum(VkAttachmentDescription.format$get(pStruct), KrcFormat.class);
         samples = VkAttachmentDescription.samples$get(pStruct);
         loadOp = VkAttachmentDescription.loadOp$get(pStruct);
         storeOp = VkAttachmentDescription.storeOp$get(pStruct);
