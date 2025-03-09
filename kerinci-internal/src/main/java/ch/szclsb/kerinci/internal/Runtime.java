@@ -2,6 +2,8 @@ package ch.szclsb.kerinci.internal;
 
 import org.reflections.Reflections;
 
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SymbolLookup;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -9,8 +11,17 @@ import java.util.TreeMap;
 public class Runtime {
     private Runtime () {}
 
-    private static final Map<Class<?>, Map<Integer, ?>> typeConstants = initHasValueTypes();
+    private static final SymbolLookup LOADER = SymbolLookup.loaderLookup();
 
+    static {
+        System.loadLibrary("D:/Projects/kerinci/kerinci-internal/target-native/Debug/Kerinci.dll");  //FIXME
+    }
+
+    public static MemorySegment loadSymbol(String name) {
+        return LOADER.find(name).orElseThrow(() -> new UnsatisfiedLinkError("unable to find symbol " + name));
+    }
+
+    private static final Map<Class<?>, Map<Integer, ?>> typeConstants = initHasValueTypes();
     private static Map<Class<?>, Map<Integer, ?>> initHasValueTypes() {
         var result = new HashMap<Class<?>, Map<Integer, ?>>();
         var reflections = new Reflections("ch.szclsb.kerinci.api");
