@@ -28,6 +28,8 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
     private File glfwSdk;
     @Parameter(property = "vulkanSdk", required = true)
     private File vulkanSdk;
+    @Parameter(property = "enableBuilder")
+    private boolean enableBuilder;
     @Parameter(property = "defineMacros")
     private Collection<String> defineMacros;
     @Parameter(property = "targetPackage")
@@ -81,7 +83,7 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
             var objectMapper = new ObjectMapper();
             var enumWriter = new EnumWriter(getLog(), outputPath, targetPackage);
-            var structWriter = new StructWriter(getLog(), outputPath, targetPackage);
+            var structWriter = new StructWriter(getLog(), outputPath, targetPackage, enableBuilder);
             var libFunctionWriter = new FunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
 
             for (var lib : libs) {

@@ -71,6 +71,7 @@
                     <nativeFunctionsPath>${project.basedir}/nativeFunctions.txt</nativeFunctionsPath>
                     <glfwSdk>${glfwSdk}</glfwSdk>
                     <vulkanSdk>${vulkanSdk}</vulkanSdk>
+                    <enableBuilder>true</enableBuilder>
                     <targetPackage>ch.szclsb.kerinci.api</targetPackage>
                     <target>${nativeOutputDir}</target>
                 </configuration>

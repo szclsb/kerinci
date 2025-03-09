@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class StructWriter extends FileWriter {
+    private static final String STRUCTURE_TYPE_FIELD = "sType";
     private final FieldConverter defaultFieldConverter = new FieldConverter();
     private final FieldConverter enumFieldConverter = new EnumConvertor();
     private final FieldConverter refFieldConvertor = new PointerConvertor();
@@ -29,10 +30,12 @@ public class StructWriter extends FileWriter {
     }
 
     private final String generatedPackage;
+    private final boolean enableBuilder;
 
-    public StructWriter(Log logger, Path dir, String generatedPackage) {
+    public StructWriter(Log logger, Path dir, String generatedPackage, boolean enableBuilder) {
         super(logger, dir);
         this.generatedPackage = generatedPackage;
+        this.enableBuilder = enableBuilder;
     }
 
     private StructField declare(String name, LibcCursor typeCursor, Context context) throws IOException {
@@ -66,7 +69,8 @@ public class StructWriter extends FileWriter {
                     case LibcType.KIND_POINTER, LibcType.KIND_ARRAY ->
                             new StructField(fieldName, "ADDRESS", defaultFieldConverter, 8, "MemorySegment");
                     case LibcType.KIND_INT -> new StructField(fieldName, "JAVA_INT", defaultFieldConverter, 4, "int");
-                    case LibcType.KIND_FLOAT -> new StructField(fieldName, "JAVA_FLOAT", defaultFieldConverter, 4, "float");
+                    case LibcType.KIND_FLOAT ->
+                            new StructField(fieldName, "JAVA_FLOAT", defaultFieldConverter, 4, "float");
                     default ->
                             throw new IllegalArgumentException("Unexpected field type king: " + fieldCursor.getType().getKind());
                 });
@@ -83,6 +87,7 @@ public class StructWriter extends FileWriter {
                     
                     import java.lang.foreign.MemoryLayout;
                     import java.lang.foreign.MemorySegment;
+                    import java.lang.foreign.SegmentAllocator;
                     import java.lang.foreign.StructLayout;
                     
                     import static java.lang.foreign.ValueLayout.ADDRESS;
@@ -143,6 +148,7 @@ public class StructWriter extends FileWriter {
                 var fieldName = Character.toUpperCase(firstChar) + field.name.substring(1);
                 var getterAccessor = field.converter.getterAccessor(field);
                 writer.write("""
+                        
                             public %s get%s() {
                                 var value = pSegment.get(%s, %d);
                                 return %s;
@@ -150,10 +156,63 @@ public class StructWriter extends FileWriter {
                         """.formatted(field.javaType, fieldName, field.layout(), fieldOffset, getterAccessor));
                 var setterAccessor = field.converter.setterAccessor(field);
                 writer.write("""
+                        
                             public void set%s(%s value) {
                                 pSegment.set(%s, %d, %s);
                             }
                         """.formatted(fieldName, field.javaType, field.layout(), fieldOffset, setterAccessor));
+            }
+
+            if (enableBuilder) {
+                writer.write("""
+                        
+                            public static Builder builder(SegmentAllocator allocator) {
+                                return new Builder(allocator);
+                            };
+                        
+                            public static class Builder {
+                                private final %1$s instance;
+                        
+                                private Builder(SegmentAllocator allocator) {
+                                    this.instance = new %1$s(allocator.allocate(LAYOUT));
+                        """.formatted(className));
+                if (fields.stream().anyMatch(field -> STRUCTURE_TYPE_FIELD.equals(field.name()))) {
+                    // set sType if present
+                    var sb = new StringBuilder();
+                    for (var c : className.substring(2).toCharArray()) {
+                        if (Character.isUpperCase(c)) {
+                            sb.append("_");
+                        }
+                        sb.append(Character.toUpperCase(c));
+                    }
+                    var sType = "ch.szclsb.kerinci.api.VkStructureType.VK_STRUCTURE_TYPE" + sb;
+                    writer.write("""
+                                        this.instance.setSType(%s);
+                            """.formatted(sType));
+                }
+                writer.write("""
+                                }
+                        
+                                public %s build() {
+                                    return instance;
+                                }
+                        """.formatted(className));
+                for (var field : fields) {
+                    if (!STRUCTURE_TYPE_FIELD.equals(field.name())) {
+                        var firstChar = field.name.charAt(0);
+                        var fieldName = Character.toUpperCase(firstChar) + field.name.substring(1);
+                        writer.write("""
+                                
+                                        public Builder set%1$s(%2$s value) {
+                                            instance.set%1$s(value);
+                                            return this;
+                                        }
+                                """.formatted(fieldName, field.javaType));
+                    }
+                }
+                writer.write("""
+                            }
+                        """);
             }
 
             writer.write("""
