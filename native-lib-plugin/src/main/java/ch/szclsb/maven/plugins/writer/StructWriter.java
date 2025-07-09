@@ -5,6 +5,7 @@ import ch.szclsb.maven.plugins.LibcCursor;
 import ch.szclsb.maven.plugins.LibcType;
 import ch.szclsb.maven.plugins.writer.convertor.EnumConvertor;
 import ch.szclsb.maven.plugins.writer.convertor.FieldConverter;
+import ch.szclsb.maven.plugins.writer.convertor.ElaboratedConvertor;
 import ch.szclsb.maven.plugins.writer.convertor.PointerConvertor;
 import org.apache.maven.plugin.logging.Log;
 
@@ -16,9 +17,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class StructWriter extends FileWriter {
     private static final String STRUCTURE_TYPE_FIELD = "sType";
+    private static final String JAVA_POINTER_LAYOUT = "ADDRESS";
+
     private final FieldConverter defaultFieldConverter = new FieldConverter();
     private final FieldConverter enumFieldConverter = new EnumConvertor();
-    private final FieldConverter refFieldConvertor = new PointerConvertor();
+    private final FieldConverter elaboratedFieldConvertor = new ElaboratedConvertor();
+    private final FieldConverter pointerFieldConvertor = new PointerConvertor();
 
     public record StructField(
             String name,
@@ -42,12 +46,17 @@ public class StructWriter extends FileWriter {
         var typeName = typeCursor.getSpelling();
         var decl = context.declare(typeName);
         if (decl == null) {
-            return new StructField(name, "UNDEFINED", defaultFieldConverter, 8, "MemoryLayout");  //TODO typeref and function pointer;
+            return null;  //TODO typeref and function pointer;
         }
         if (decl.isPointer()) {
-            return new StructField(name, "ADDRESS", refFieldConvertor, 8, decl.javaType());
+            return new StructField(name, JAVA_POINTER_LAYOUT, pointerFieldConvertor, 8, decl.javaType());
         }
-        return new StructField(name, decl.javaLayout(), LibcCursor.KIND_ENUM.equals(decl.cursorKind()) ? enumFieldConverter : defaultFieldConverter, decl.bytes(), decl.javaType());
+        var convertor = decl.cursorKind() == null ? defaultFieldConverter : switch (decl.cursorKind()) {
+            case LibcCursor.KIND_ENUM -> enumFieldConverter;
+            case LibcCursor.KIND_STRUCT -> elaboratedFieldConvertor;
+            default -> defaultFieldConverter;
+        };
+        return new StructField(name, decl.javaLayout(), convertor, decl.bytes(), decl.javaType());
     }
 
     /**
@@ -64,16 +73,21 @@ public class StructWriter extends FileWriter {
             if (LibcCursor.KIND_FIELD.equals(fieldCursor.getKind())) {
                 var fieldName = fieldCursor.getSpelling();
                 logger.debug("---- resolving field: %s".formatted(fieldName));
-                fields.add(switch (fieldCursor.getType().getKind()) {
+                var field = switch (fieldCursor.getType().getKind()) {
                     case LibcType.KIND_ELABORATED -> declare(fieldName, fieldCursor.getChildren().getFirst(), context);
                     case LibcType.KIND_POINTER, LibcType.KIND_ARRAY ->
-                            new StructField(fieldName, "ADDRESS", defaultFieldConverter, 8, "MemorySegment");
+                            new StructField(fieldName, JAVA_POINTER_LAYOUT, defaultFieldConverter, 8, "MemorySegment");
                     case LibcType.KIND_INT -> new StructField(fieldName, "JAVA_INT", defaultFieldConverter, 4, "int");
                     case LibcType.KIND_FLOAT ->
                             new StructField(fieldName, "JAVA_FLOAT", defaultFieldConverter, 4, "float");
                     default ->
-                            throw new IllegalArgumentException("Unexpected field type king: " + fieldCursor.getType().getKind());
-                });
+                            throw new IllegalArgumentException("Unexpected field type kind: " + fieldCursor.getType().getKind());
+                };
+                if (field == null) {
+                    logger.warn("---- ignoring field %s, because resolved declaration is null".formatted(fieldName));
+                } else {
+                    fields.add(field);
+                }
             }
         }
 
@@ -146,21 +160,26 @@ public class StructWriter extends FileWriter {
                 var fieldOffset = offsets.get(field.name);
                 var firstChar = field.name.charAt(0);
                 var fieldName = Character.toUpperCase(firstChar) + field.name.substring(1);
-                var getterAccessor = field.converter.getterAccessor(field);
-                writer.write("""
+
+                var getterAccessor = field.converter.getterAccessor(field.layout, fieldOffset, field.javaType);
+                if (getterAccessor != null) {
+                    writer.write("""
                         
                             public %s get%s() {
-                                var value = pSegment.get(%s, %d);
                                 return %s;
                             }
-                        """.formatted(field.javaType, fieldName, field.layout(), fieldOffset, getterAccessor));
-                var setterAccessor = field.converter.setterAccessor(field);
-                writer.write("""
+                        """.formatted(field.javaType, fieldName, getterAccessor));
+                }
+
+                var setterAccessor = field.converter.setterAccessor(field.layout, fieldOffset);
+                if (setterAccessor != null) {
+                    writer.write("""
                         
                             public void set%s(%s value) {
-                                pSegment.set(%s, %d, %s);
+                                %s;
                             }
-                        """.formatted(fieldName, field.javaType, field.layout(), fieldOffset, setterAccessor));
+                        """.formatted(fieldName, field.javaType, setterAccessor));
+                }
             }
 
             if (enableBuilder) {
@@ -179,13 +198,16 @@ public class StructWriter extends FileWriter {
                 if (fields.stream().anyMatch(field -> STRUCTURE_TYPE_FIELD.equals(field.name()))) {
                     // set sType if present
                     var sb = new StringBuilder();
-                    for (var c : className.substring(2).toCharArray()) {
-                        if (Character.isUpperCase(c)) {
+                    var charArray = className.substring(2).toCharArray();
+                    for (var i = 0; i < charArray.length; i++) {
+                        var c = charArray[i];
+                        var cp = i - 1 < 0 ? null : charArray[i - 1];
+                        if (Character.isUpperCase(c) && cp != null && Character.isLowerCase(cp)) {
                             sb.append("_");
                         }
                         sb.append(Character.toUpperCase(c));
                     }
-                    var sType = "ch.szclsb.kerinci.api.VkStructureType.VK_STRUCTURE_TYPE" + sb;
+                    var sType = "ch.szclsb.kerinci.api.VkStructureType.VK_STRUCTURE_TYPE_" + sb;
                     writer.write("""
                                         this.instance.setSType(%s);
                             """.formatted(sType));
@@ -199,15 +221,19 @@ public class StructWriter extends FileWriter {
                         """.formatted(className));
                 for (var field : fields) {
                     if (!STRUCTURE_TYPE_FIELD.equals(field.name())) {
-                        var firstChar = field.name.charAt(0);
-                        var fieldName = Character.toUpperCase(firstChar) + field.name.substring(1);
-                        writer.write("""
+                        if (field.converter instanceof ElaboratedConvertor) {
+                           // todo separate builder handle
+                        } else {
+                            var firstChar = field.name.charAt(0);
+                            var fieldName = Character.toUpperCase(firstChar) + field.name.substring(1);
+                            writer.write("""
                                 
                                         public Builder set%1$s(%2$s value) {
                                             instance.set%1$s(value);
                                             return this;
                                         }
                                 """.formatted(fieldName, field.javaType));
+                        }
                     }
                 }
                 writer.write("""

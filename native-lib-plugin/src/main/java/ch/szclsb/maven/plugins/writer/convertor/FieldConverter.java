@@ -1,13 +1,16 @@
 package ch.szclsb.maven.plugins.writer.convertor;
 
-import ch.szclsb.maven.plugins.writer.StructWriter;
-
 public class FieldConverter {
-    public String getterAccessor(StructWriter.StructField field) {
-        return "value";
+    // memory segment variable = pSegment
+    // setter variable = value
+
+
+
+    public String getterAccessor(String fieldLayout, long fieldOffset, String javaClass) {
+        return "pSegment.get(%s, %d)".formatted(fieldLayout, fieldOffset);
     }
 
-    public String setterAccessor(StructWriter.StructField field) {
-        return "value";
+    public String setterAccessor(String fieldLayout, long fieldOffset) {
+        return "pSegment.set(%s, %d, value)".formatted(fieldLayout, fieldOffset);
     }
 }

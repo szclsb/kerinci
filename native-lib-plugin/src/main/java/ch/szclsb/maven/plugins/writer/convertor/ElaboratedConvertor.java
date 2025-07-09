@@ -1,13 +1,13 @@
 package ch.szclsb.maven.plugins.writer.convertor;
 
-public class EnumConvertor extends FieldConverter {
+public class ElaboratedConvertor extends FieldConverter {
     @Override
     public String getterAccessor(String fieldLayout, long fieldOffset, String javaClass) {
-        return "%s.ofValue(pSegment.get(%s, %d))".formatted(javaClass, fieldLayout, fieldOffset);
+        return "new %s(pSegment.asSlice(%d, %s))".formatted(javaClass, fieldOffset, fieldLayout);
     }
 
     @Override
     public String setterAccessor(String fieldLayout, long fieldOffset) {
-        return "pSegment.set(%s, %d, value.getValue())".formatted(fieldLayout, fieldOffset);
+        return null;
     }
 }

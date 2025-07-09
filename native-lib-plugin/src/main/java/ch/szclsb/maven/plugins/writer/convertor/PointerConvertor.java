@@ -1,15 +1,13 @@
 package ch.szclsb.maven.plugins.writer.convertor;
 
-import ch.szclsb.maven.plugins.writer.StructWriter;
-
 public class PointerConvertor extends FieldConverter {
     @Override
-    public String getterAccessor(StructWriter.StructField field) {
-        return "new %s(%s)".formatted(field.javaType(), super.getterAccessor(field));
+    public String getterAccessor(String fieldLayout, long fieldOffset, String javaClass) {
+        return "new %s(pSegment.asSlice(%d, %s))".formatted(javaClass, fieldOffset, fieldLayout);
     }
 
     @Override
-    public String setterAccessor(StructWriter.StructField field) {
-        return "%s.getSegment()".formatted(super.setterAccessor(field));
+    public String setterAccessor(String fieldLayout, long fieldOffset) {
+        return "pSegment.set(%s, %d, value.getSegment())".formatted(fieldLayout, fieldOffset);
     }
 }

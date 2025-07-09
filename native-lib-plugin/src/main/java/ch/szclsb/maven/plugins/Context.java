@@ -151,7 +151,7 @@ public class Context {
                 structSize = structWriter.write(typeName, cursor, this);
                 structSizes.put(typeName, structSize);
             }
-            return new Declaration(LibcCursor.KIND_ENUM, typeChain, typeName, typeName + ".LAYOUT", structSize);
+            return new Declaration(LibcCursor.KIND_STRUCT, typeChain, typeName, typeName + ".LAYOUT", structSize);
         }
         return null;
     }
