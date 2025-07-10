@@ -1,5 +1,7 @@
 package ch.szclsb.maven.plugins;
 
+import ch.szclsb.maven.plugins.libc.LibcCursor;
+import ch.szclsb.maven.plugins.libc.LibcType;
 import ch.szclsb.maven.plugins.writer.EnumWriter;
 import ch.szclsb.maven.plugins.writer.StructWriter;
 
@@ -123,11 +125,13 @@ public class Context {
 
         var actualType = typeChain.getLast();
 
+        // handle VkFlag as bit mask using int
         if (typeChain.stream().anyMatch(typeRef -> typeRef.name().contains(VK_FLAGS))) {
             var flagBitsType = getFlagBitsType(typeName);
             if (declare(flagBitsType) == null) {  // declare flag bit enums
                 return null;  // abort if corresponding bits are not present
             }
+            return new Declaration(null, typeChain, flagBitsType, "JAVA_INT", 4);  // use flagBitsType instead of actualType
         }
 
         var cursor = declarations.get(actualType.name());

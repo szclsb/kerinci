@@ -60,7 +60,7 @@
                     <execution>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>native-lib</goal>
+                            <goal>generate</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -1,4 +1,4 @@
-package ch.szclsb.maven.plugins;
+package ch.szclsb.maven.plugins.libc;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

@@ -1,5 +1,6 @@
 package ch.szclsb.maven.plugins;
 
+import ch.szclsb.maven.plugins.libc.LibcCursor;
 import ch.szclsb.maven.plugins.writer.EnumWriter;
 import ch.szclsb.maven.plugins.writer.FunctionWriter;
 import ch.szclsb.maven.plugins.writer.StructWriter;
@@ -14,7 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-@Mojo(name = "native-lib")
+@Mojo(name = "generate")
 public class NativeLibMojo extends AbstractCommandProcessMojo {
     @Parameter(property = "nativePath", required = true)
     private File nativePath;

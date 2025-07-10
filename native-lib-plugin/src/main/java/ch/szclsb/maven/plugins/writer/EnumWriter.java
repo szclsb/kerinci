@@ -1,6 +1,6 @@
 package ch.szclsb.maven.plugins.writer;
 
-import ch.szclsb.maven.plugins.LibcCursor;
+import ch.szclsb.maven.plugins.libc.LibcCursor;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -41,14 +41,14 @@ public class EnumWriter extends FileWriter {
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %s;
                     
-                    import ch.szclsb.kerinci.internal.HasValue;
+                    import ch.szclsb.kerinci.internal.Flag;
                     import ch.szclsb.kerinci.internal.Runtime;
                     import lombok.Getter;
                     import lombok.RequiredArgsConstructor;
                     
                     @Getter
                     @RequiredArgsConstructor
-                    public enum %s implements HasValue {
+                    public enum %s implements Flag {
                     """.formatted(
                     generatedPackage,
                     className

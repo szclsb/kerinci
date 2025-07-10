@@ -1,8 +1,8 @@
 package ch.szclsb.maven.plugins.writer;
 
 import ch.szclsb.maven.plugins.Context;
-import ch.szclsb.maven.plugins.LibcCursor;
-import ch.szclsb.maven.plugins.LibcType;
+import ch.szclsb.maven.plugins.libc.LibcCursor;
+import ch.szclsb.maven.plugins.libc.LibcType;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
