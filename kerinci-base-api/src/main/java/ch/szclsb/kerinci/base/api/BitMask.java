@@ -5,6 +5,9 @@ import java.util.function.IntBinaryOperator;
 
 public class BitMask<F extends Flag> implements HasValue {
     private static final IntBinaryOperator INT_OR = (a, b) -> a | b;
+    private static boolean checkFlags(int value, int flags) {
+        return  (value & flags) == flags;
+    }
 
     private int mask;
 
@@ -33,16 +36,14 @@ public class BitMask<F extends Flag> implements HasValue {
     }
 
     public final boolean isSet(F flag) {
-        var f = flag.getValue();
-        return (mask & f) == f;
+        return checkFlags(mask, flag.getValue());
     }
 
     @SafeVarargs
     public final boolean areAllSet(F ...flags) {
-        var f = Arrays.stream(flags)
+        return checkFlags(mask, Arrays.stream(flags)
                 .mapToInt(F::getValue)
-                .reduce(0, INT_OR);
-        return (mask & f) == f;
+                .reduce(0, INT_OR));
     }
 
     @SafeVarargs
