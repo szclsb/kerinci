@@ -1,11 +1,10 @@
 package ch.szclsb.kerinci.example;
 
-import java.lang.foreign.Arena;
-
+import ch.szclsb.kerinci.internal.KerinciRuntime;
 
 public class Example {
     public static void main(String[] args) {
-        try (var arena = Arena.ofShared();
+        try (var runtime = new KerinciRuntime();
 //             var glfw = new GlfwApi();
 //             var vk = new VulkanApi("Kerinci", true);
 //             var window = glfw.createWindow(vk, 500, 350, "Kerinci Example Window")

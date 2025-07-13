@@ -97,9 +97,7 @@ public class FunctionWriter extends FileWriter {
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %1$s;
                     
-                    import java.lang.foreign.Arena;
                     import java.lang.foreign.FunctionDescriptor;
-                    import java.lang.foreign.Linker;
                     import java.lang.invoke.MethodHandle;
                     
                     import java.util.Arrays;
@@ -109,11 +107,8 @@ public class FunctionWriter extends FileWriter {
                     
                     import ch.szclsb.kerinci.base.api.Runtime;
                     
-                    public class %2$s implements AutoCloseable {
-                        private static final Linker LINKER = Linker.nativeLinker();
-                    
+                    public class %2$s {
                         private final Runtime runtime;
-                        private final Arena session;
                     """.formatted(generatedPackage, libName));
             for (var function : functionDefinitions) {
                 writer.write("""
@@ -124,12 +119,11 @@ public class FunctionWriter extends FileWriter {
                     
                         public %s(Runtime runtime) {
                             this.runtime = runtime;
-                            this.session = Arena.ofShared();
                     """.formatted(libName));
             for (var function : functionDefinitions) {
                 // FIXME return args
                 writer.write("""
-                                this.%sNative = LINKER.downcallHandle(runtime.loadSymbol("%s"), FunctionDescriptor.ofVoid());  // FIXME return args
+                                this.%sNative = runtime.linkMethod("%s", FunctionDescriptor.ofVoid());  // FIXME return args
                         """.formatted(function.name(), functionPrefix + function.name()));
             }
 
@@ -155,13 +149,8 @@ public class FunctionWriter extends FileWriter {
             }
 
             writer.write("""
-                    
-                        @Override
-                        public void close() throws Exception {
-                            this.session.close();
-                        }
-                    
-                    }""");
+                    }
+                    """);
         });
     }
 }
