@@ -59,7 +59,7 @@ public class FunctionWriter extends FileWriter {
             var decl = context.declare(e);
             if (decl != null) {
                 if (decl.isFlag()) {
-                    return "Set<%s>".formatted(getFlagBitsType(e));
+                    return "BitMask<%s>".formatted(getFlagBitsType(e));
                 }
 //                if (decl.isHandle()) {
 //                }
@@ -97,15 +97,15 @@ public class FunctionWriter extends FileWriter {
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %1$s;
                     
-                    import java.lang.foreign.FunctionDescriptor;
-                    import java.lang.invoke.MethodHandle;
+                    import ch.szclsb.kerinci.base.api.BitMask;
+                    import ch.szclsb.kerinci.base.api.Runtime;
                     
                     import java.util.Arrays;
                     import java.util.List;
                     import java.util.Set;
+                    import java.lang.foreign.FunctionDescriptor;
+                    import java.lang.invoke.MethodHandle;
                     import java.util.stream.Stream;
-                    
-                    import ch.szclsb.kerinci.base.api.Runtime;
                     
                     public class %2$s {
                         private final Runtime runtime;
