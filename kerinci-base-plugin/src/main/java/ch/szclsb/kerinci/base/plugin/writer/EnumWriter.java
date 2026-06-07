@@ -62,6 +62,15 @@ public class EnumWriter extends FileWriter {
                     
                         private final int value;
                     
+                        private %1$s(int value) {
+                            this.value = value;
+                        }
+                    
+                        @Override
+                        public int getValue() {
+                            return value;
+                        }
+                    
                         private static Map<Integer, %1$s> flags = Arrays.stream(%1$s.values())
                             .collect(Collectors.toMap(%1$s::getValue, Function.identity()));
                         public static %1$s ofValue(int value) {
