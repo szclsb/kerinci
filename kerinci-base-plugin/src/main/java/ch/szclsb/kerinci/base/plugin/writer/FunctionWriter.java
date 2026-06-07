@@ -97,7 +97,7 @@ public class FunctionWriter extends FileWriter {
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %1$s;
                     
-                    import ch.szclsb.kerinci.internal.BitMask;
+                    import ch.szclsb.kerinci.base.api.BitMask;
                     import ch.szclsb.kerinci.base.api.Runtime;
                     
                     import java.util.Arrays;

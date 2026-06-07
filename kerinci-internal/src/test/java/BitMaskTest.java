@@ -1,4 +1,4 @@
-import ch.szclsb.kerinci.internal.BitMask;
+import ch.szclsb.kerinci.internal.KerinciBitMask;
 import ch.szclsb.kerinci.base.api.Flag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ public class BitMaskTest {
 
     @Test
     public void test_mask() {
-        var bitMask = new BitMask<TestFlag>();
+        var bitMask = new KerinciBitMask<TestFlag>();
 
         // empty mask
         Assertions.assertEquals(0, bitMask.getValue());

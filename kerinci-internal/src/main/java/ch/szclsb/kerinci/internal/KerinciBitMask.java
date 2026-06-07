@@ -1,25 +1,19 @@
 package ch.szclsb.kerinci.internal;
 
+import ch.szclsb.kerinci.base.api.BitMask;
 import ch.szclsb.kerinci.base.api.Flag;
-import ch.szclsb.kerinci.base.api.HasValue;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.IntBinaryOperator;
 
-public class BitMask<F extends Flag> implements HasValue {
-    private static final IntBinaryOperator INT_OR = (a, b) -> a | b;
-    private static boolean checkFlags(int value, int flags) {
-        return (value & flags) == flags;
-    }
-
+public class KerinciBitMask<F extends Flag> implements BitMask<F> {
     private final AtomicInteger mask;
 
-    public BitMask() {
+    public KerinciBitMask() {
         this(0);
     }
 
-    public BitMask(int mask) {
+    public KerinciBitMask(int mask) {
         this.mask = new AtomicInteger(mask);
     }
 
@@ -28,10 +22,12 @@ public class BitMask<F extends Flag> implements HasValue {
         return mask.get();
     }
 
+    @Override
     public final void reset() {
         this.mask.set(0);
     }
 
+    @Override
     public final void add(F flag) {
         int currentValue, newValue;
         do {
@@ -40,6 +36,7 @@ public class BitMask<F extends Flag> implements HasValue {
         } while (!this.mask.compareAndSet(currentValue, newValue));
     }
 
+    @Override
     @SafeVarargs
     public final void addAll(F... flags) {
         int currentValue, newValue;
@@ -51,20 +48,22 @@ public class BitMask<F extends Flag> implements HasValue {
         } while (!this.mask.compareAndSet(currentValue, newValue));
     }
 
+    @Override
     public final boolean isSet(F flag) {
-        return checkFlags(mask.get(), flag.getValue());
+        return BitMask.checkFlags(mask.get(), flag.getValue());
     }
 
+    @Override
     @SafeVarargs
-    public final boolean areAllSet(F ...flags) {
-        return checkFlags(mask.get(), Arrays.stream(flags)
+    public final boolean areAllSet(F... flags) {
+        return BitMask.checkFlags(mask.get(), Arrays.stream(flags)
                 .mapToInt(F::getValue)
                 .reduce(0, INT_OR));
     }
 
     @SafeVarargs
-    public static <F extends Flag> BitMask<F> ofFlags(F... flags) {
-        var bitMask = new BitMask<F>();
+    public static <F extends Flag> KerinciBitMask<F> ofFlags(F... flags) {
+        var bitMask = new KerinciBitMask<F>();
         bitMask.addAll(flags);
         return bitMask;
     }

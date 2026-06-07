@@ -2,6 +2,6 @@ package ch.szclsb.kerinci.base.api;
 
 import java.lang.foreign.MemorySegment;
 
-public interface Struct {
+public interface ForeignObject {
     MemorySegment getSegment();
 }

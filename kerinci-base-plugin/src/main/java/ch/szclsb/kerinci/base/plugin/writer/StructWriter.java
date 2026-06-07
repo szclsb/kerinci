@@ -75,12 +75,15 @@ public class StructWriter extends FileWriter {
 
         var bytes = new AtomicLong(0);
         writeFile(className, writer -> {
+            //TODO: fetch BitMask implementation name form external source
             writer.write("""
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %s;
                     
-                    import ch.szclsb.kerinci.internal.BitMask;
-                    import ch.szclsb.kerinci.base.api.Struct;
+                    import ch.szclsb.kerinci.base.api.BitMask;
+                    import ch.szclsb.kerinci.base.api.ForeignObject;
+                    
+                    import ch.szclsb.kerinci.internal.KerinciBitMask;
                     
                     import java.lang.foreign.MemoryLayout;
                     import java.lang.foreign.MemorySegment;
@@ -93,7 +96,7 @@ public class StructWriter extends FileWriter {
                     import static java.lang.foreign.ValueLayout.JAVA_INT;
                     import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
                     
-                    public class %s implements Struct {
+                    public class %s implements ForeignObject {
                         public static final StructLayout LAYOUT = MemoryLayout.structLayout(
                     """.formatted(generatedPackage, className));
             var offsets = new HashMap<StructField, Long>();

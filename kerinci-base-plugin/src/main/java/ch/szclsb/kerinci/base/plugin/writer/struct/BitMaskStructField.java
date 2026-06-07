@@ -16,10 +16,11 @@ public class BitMaskStructField extends AbstractStructField {
 
     @Override
     public void writeFieldGetter(Writer structWriter, long fieldOffset) throws IOException {
+        //TODO: fetch BitMask implementation name form external source
         structWriter.write("""
                 
                     public BitMask<%s> %s() {
-                        return new BitMask<>(pSegment.get(%s, %d));
+                        return new KerinciBitMask<>(pSegment.get(%s, %d));
                     }
                 """.formatted(javaType, getFieldMethodGet(), memoryLayout, fieldOffset));
     }
