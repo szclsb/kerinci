@@ -1,4 +1,7 @@
-package ch.szclsb.kerinci.base.api;
+package ch.szclsb.kerinci.internal;
+
+import ch.szclsb.kerinci.base.api.Flag;
+import ch.szclsb.kerinci.base.api.HasValue;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;

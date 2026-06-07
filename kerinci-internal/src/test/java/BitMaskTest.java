@@ -1,5 +1,5 @@
-package ch.szclsb.kerinci.base.api;
-
+import ch.szclsb.kerinci.internal.BitMask;
+import ch.szclsb.kerinci.base.api.Flag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

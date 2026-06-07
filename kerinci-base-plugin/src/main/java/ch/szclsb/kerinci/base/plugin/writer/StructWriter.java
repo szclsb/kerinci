@@ -79,7 +79,7 @@ public class StructWriter extends FileWriter {
                     // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
                     package %s;
                     
-                    import ch.szclsb.kerinci.base.api.BitMask;
+                    import ch.szclsb.kerinci.internal.BitMask;
                     import ch.szclsb.kerinci.base.api.Struct;
                     
                     import java.lang.foreign.MemoryLayout;
