@@ -47,13 +47,12 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
-                    <!-- no preview here -->
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.15.1</version>
+                <version>3.15.2</version>
                 <configuration>
                     <goalPrefix>kerinci-base</goalPrefix>
                 </configuration>
