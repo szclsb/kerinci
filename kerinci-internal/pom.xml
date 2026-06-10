@@ -94,6 +94,13 @@
                     <targetPackage>ch.szclsb.kerinci.api</targetPackage>
                     <target>${nativeOutputDir}</target>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>gg.jte</groupId>
+                        <artifactId>jte-runtime</artifactId>
+                        <version>3.2.4</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
