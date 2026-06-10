@@ -1,7 +1,6 @@
 package ch.szclsb.kerinci.base.plugin.template.ftl;
 
 import ch.szclsb.kerinci.base.plugin.template.EnumFileContext;
-import ch.szclsb.kerinci.base.plugin.template.TemplateWriter;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 
@@ -9,10 +8,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 
-public class FtlWriterImpl implements TemplateWriter {
+public class FtlTemplateHandler {
     private final Configuration configuration;
 
-    public FtlWriterImpl() {
+    public FtlTemplateHandler() {
         this.configuration = configure();
     }
 
@@ -36,7 +35,6 @@ public class FtlWriterImpl implements TemplateWriter {
         }
     }
 
-    @Override
     public void writeEnum(EnumFileContext model, Writer writer) throws IOException {
         run(() -> {
             var template = configuration.getTemplate("enum.ftl");

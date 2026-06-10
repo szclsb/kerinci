@@ -10,10 +10,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class EnumWriter extends FileWriter {
-    private final TemplateWriter templateWriter;
+    private final TemplateWriter<EnumFileContext> templateWriter;
     private final String generatedPackage;
 
-    public EnumWriter(Log logger, Path dir, TemplateWriter templateWriter, String generatedPackage) {
+    public EnumWriter(Log logger, Path dir, TemplateWriter<EnumFileContext> templateWriter, String generatedPackage) {
         super(logger, dir);
         this.templateWriter = templateWriter;
         this.generatedPackage = generatedPackage;
@@ -40,6 +40,6 @@ public class EnumWriter extends FileWriter {
         }
 
         var model = new EnumFileContext(generatedPackage, className, enumConst);
-        writeFile(className, writer -> templateWriter.writeEnum(model, writer));
+        writeFile(className, writer -> templateWriter.render(model, writer));
     }
 }
