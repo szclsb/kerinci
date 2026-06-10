@@ -2,9 +2,7 @@ package ch.szclsb.kerinci.base.plugin.writer;
 
 import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.template.EnumFileContext;
-import freemarker.core.OutputFormat;
-import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
+import ch.szclsb.kerinci.base.plugin.template.TemplateWriter;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -12,10 +10,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class EnumWriter extends FileWriter {
+    private final TemplateWriter templateWriter;
     private final String generatedPackage;
 
-    public EnumWriter(Log logger, Path dir, String generatedPackage) {
+    public EnumWriter(Log logger, Path dir, TemplateWriter templateWriter, String generatedPackage) {
         super(logger, dir);
+        this.templateWriter = templateWriter;
         this.generatedPackage = generatedPackage;
     }
 
@@ -23,7 +23,6 @@ public class EnumWriter extends FileWriter {
         logger.info("-- declaring enum: %s (%s)".formatted(className, enumCursor.getSpelling()));
 
         var enumConst = new ArrayList<EnumFileContext.EnumConst>();
-
         for (var enumValue : enumCursor.getChildren()) {
             if (LibcCursor.KIND_ENUM_CONST.equals(enumValue.getKind())) {
                 var valueName = enumValue.getSpelling();
@@ -40,19 +39,7 @@ public class EnumWriter extends FileWriter {
             }
         }
 
-        var cfg = new Configuration(Configuration.VERSION_2_3_34);
-        cfg.setDirectoryForTemplateLoading(Path.of("kerinci-base-plugin/src/main/resources/templates/freemarker").toFile());
-        cfg.setDefaultEncoding("UTF-8");
-
-        var template = cfg.getTemplate("enum.ftl");
         var model = new EnumFileContext(generatedPackage, className, enumConst);
-
-        writeFile(className, writer -> {
-            try{
-                template.process(model, writer);
-            } catch (TemplateException e) {
-                throw new IOException(e);
-            }
-        });
+        writeFile(className, writer -> templateWriter.writeEnum(model, writer));
     }
 }

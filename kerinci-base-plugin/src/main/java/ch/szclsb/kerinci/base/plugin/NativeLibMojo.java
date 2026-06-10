@@ -1,6 +1,7 @@
 package ch.szclsb.kerinci.base.plugin;
 
 import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.template.ftl.FtlWriterImpl;
 import ch.szclsb.kerinci.base.plugin.writer.EnumWriter;
 import ch.szclsb.kerinci.base.plugin.writer.FunctionWriter;
 import ch.szclsb.kerinci.base.plugin.writer.StructWriter;
@@ -82,11 +83,13 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
             getLog().info("prepareOutputDirectory: " + outputPath);
             prepareDir(outputPath);
 
-            var objectMapper = new ObjectMapper();
-            var enumWriter = new EnumWriter(getLog(), outputPath, targetPackage);
+            var templateDir = getWorkingDirectory().toPath();
+            var templateWriter = new FtlWriterImpl();
+            var enumWriter = new EnumWriter(getLog(), outputPath, templateWriter, targetPackage);
             var structWriter = new StructWriter(getLog(), outputPath, targetPackage, enableBuilder);
             var libFunctionWriter = new FunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
 
+            var objectMapper = new ObjectMapper();
             for (var lib : libs) {
                 getLog().info("start generating native library " + lib.name());
                 var translationUnit = parseAst(objectMapper, lib.header());
