@@ -1,6 +1,10 @@
 package ch.szclsb.kerinci.base.plugin.writer;
 
 import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.template.EnumFileContext;
+import freemarker.core.OutputFormat;
+import freemarker.template.Configuration;
+import freemarker.template.TemplateException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -18,7 +22,7 @@ public class EnumWriter extends FileWriter {
     public void write(String className, LibcCursor enumCursor) throws IOException {
         logger.info("-- declaring enum: %s (%s)".formatted(className, enumCursor.getSpelling()));
 
-        var enumConst = new ArrayList<String>();
+        var enumConst = new ArrayList<EnumFileContext.EnumConst>();
 
         for (var enumValue : enumCursor.getChildren()) {
             if (LibcCursor.KIND_ENUM_CONST.equals(enumValue.getKind())) {
@@ -32,52 +36,23 @@ public class EnumWriter extends FileWriter {
                                 .findFirst()
                                 .map(c -> c.getSpelling() + ".value"))
                         .orElse("");
-                enumConst.add("    %s(%s)".formatted(valueName, value));
+                enumConst.add(new EnumFileContext.EnumConst(valueName, value));
             }
         }
 
+        var cfg = new Configuration(Configuration.VERSION_2_3_34);
+        cfg.setDirectoryForTemplateLoading(Path.of("kerinci-base-plugin/src/main/resources/templates/freemarker").toFile());
+        cfg.setDefaultEncoding("UTF-8");
+
+        var template = cfg.getTemplate("enum.ftl");
+        var model = new EnumFileContext(generatedPackage, className, enumConst);
+
         writeFile(className, writer -> {
-            writer.write("""
-                    // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
-                    package %s;
-                    
-                    import ch.szclsb.kerinci.base.api.Flag;
-                    import lombok.Getter;
-                    import lombok.RequiredArgsConstructor;
-                    
-                    import java.util.Arrays;
-                    import java.util.Map;
-                    import java.util.function.Function;
-                    import java.util.stream.Collectors;
-                    
-                    @Getter
-                    @RequiredArgsConstructor
-                    public enum %s implements Flag {
-                    """.formatted(
-                    generatedPackage,
-                    className
-            ));
-            writer.write(String.join(",\n", enumConst) + ";");
-            writer.write("""
-                    
-                        private final int value;
-                    
-                        private %1$s(int value) {
-                            this.value = value;
-                        }
-                    
-                        @Override
-                        public int getValue() {
-                            return value;
-                        }
-                    
-                        private static Map<Integer, %1$s> flags = Arrays.stream(%1$s.values())
-                            .collect(Collectors.toMap(%1$s::getValue, Function.identity()));
-                        public static %1$s ofValue(int value) {
-                            return flags.get(value);
-                        }
-                    }
-                    """.formatted(className));
+            try{
+                template.process(model, writer);
+            } catch (TemplateException e) {
+                throw new IOException(e);
+            }
         });
     }
 }
