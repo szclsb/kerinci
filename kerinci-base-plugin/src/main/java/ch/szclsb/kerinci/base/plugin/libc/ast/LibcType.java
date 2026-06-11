@@ -1,4 +1,4 @@
-package ch.szclsb.kerinci.base.plugin.libc;
+package ch.szclsb.kerinci.base.plugin.libc.ast;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

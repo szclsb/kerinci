@@ -1,4 +1,4 @@
-package ch.szclsb.kerinci.base.plugin.writer.struct;
+package ch.szclsb.kerinci.base.plugin.libc.writer.struct;
 
 import java.io.IOException;
 import java.io.Writer;

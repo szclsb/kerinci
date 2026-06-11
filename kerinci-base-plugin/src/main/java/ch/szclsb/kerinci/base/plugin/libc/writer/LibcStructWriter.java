@@ -1,9 +1,10 @@
-package ch.szclsb.kerinci.base.plugin.writer;
+package ch.szclsb.kerinci.base.plugin.libc.writer;
 
-import ch.szclsb.kerinci.base.plugin.Context;
-import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
-import ch.szclsb.kerinci.base.plugin.libc.LibcType;
-import ch.szclsb.kerinci.base.plugin.writer.struct.*;
+import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
+import ch.szclsb.kerinci.base.plugin.FileWriter;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcType;
+import ch.szclsb.kerinci.base.plugin.libc.writer.struct.*;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -12,19 +13,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class StructWriter extends FileWriter {
+public class LibcStructWriter extends FileWriter {
     private static final String STRUCTURE_TYPE_FIELD = "sType";
 
     private final String generatedPackage;
     private final boolean enableBuilder;
 
-    public StructWriter(Log logger, Path dir, String generatedPackage, boolean enableBuilder) {
+    public LibcStructWriter(Log logger, Path dir, String generatedPackage, boolean enableBuilder) {
         super(logger, dir);
         this.generatedPackage = generatedPackage;
         this.enableBuilder = enableBuilder;
     }
 
-    private StructField declare(String fieldName, LibcCursor typeCursor, Context context) throws IOException {
+    private StructField declare(String fieldName, LibcCursor typeCursor, LibcContext context) throws IOException {
         var typeName = typeCursor.getSpelling();
         var decl = context.declare(typeName);
         if (decl == null || decl.isPointer()) {
@@ -49,7 +50,7 @@ public class StructWriter extends FileWriter {
      * @return
      * @throws IOException
      */
-    public long write(String className, LibcCursor structCursor, Context context) throws IOException {
+    public long write(String className, LibcCursor structCursor, LibcContext context) throws IOException {
         logger.info("-- declaring struct: %s (%s)".formatted(className, structCursor.getSpelling()));
         var fields = new ArrayList<StructField>();
         for (var fieldCursor : structCursor.getChildren()) {

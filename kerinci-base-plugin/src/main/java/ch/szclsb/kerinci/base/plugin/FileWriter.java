@@ -1,6 +1,5 @@
-package ch.szclsb.kerinci.base.plugin.writer;
+package ch.szclsb.kerinci.base.plugin;
 
-import ch.szclsb.kerinci.base.plugin.OutputWriter;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.BufferedWriter;

@@ -1,6 +1,7 @@
-package ch.szclsb.kerinci.base.plugin.writer;
+package ch.szclsb.kerinci.base.plugin.libc.writer;
 
-import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.FileWriter;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.template.EnumFileContext;
 import ch.szclsb.kerinci.base.plugin.template.TemplateWriter;
 import org.apache.maven.plugin.logging.Log;
@@ -9,11 +10,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-public class EnumWriter extends FileWriter {
+public class LibcEnumWriter extends FileWriter {
     private final TemplateWriter<EnumFileContext> templateWriter;
     private final String generatedPackage;
 
-    public EnumWriter(Log logger, Path dir, TemplateWriter<EnumFileContext> templateWriter, String generatedPackage) {
+    public LibcEnumWriter(Log logger, Path dir, TemplateWriter<EnumFileContext> templateWriter, String generatedPackage) {
         super(logger, dir);
         this.templateWriter = templateWriter;
         this.generatedPackage = generatedPackage;

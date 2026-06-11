@@ -1,6 +1,6 @@
-package ch.szclsb.kerinci.base.plugin.writer.struct;
+package ch.szclsb.kerinci.base.plugin.libc.writer.struct;
 
-import ch.szclsb.kerinci.base.plugin.Context;
+import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -10,7 +10,7 @@ public class ElaboratedStructField extends AbstractStructField {
         super(fieldName, memoryLayout, byteSize, javaType);
     }
 
-    public ElaboratedStructField(String fieldName, Context.Declaration declaration) {
+    public ElaboratedStructField(String fieldName, LibcContext.Declaration declaration) {
         super(fieldName, declaration);
     }
 

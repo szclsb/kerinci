@@ -1,10 +1,11 @@
 package ch.szclsb.kerinci.base.plugin;
 
-import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.template.ftl.FtlTemplateHandler;
-import ch.szclsb.kerinci.base.plugin.writer.EnumWriter;
-import ch.szclsb.kerinci.base.plugin.writer.FunctionWriter;
-import ch.szclsb.kerinci.base.plugin.writer.StructWriter;
+import ch.szclsb.kerinci.base.plugin.libc.writer.LibcEnumWriter;
+import ch.szclsb.kerinci.base.plugin.libc.writer.LibcFunctionWriter;
+import ch.szclsb.kerinci.base.plugin.libc.writer.LibcStructWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -84,15 +85,15 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
             prepareDir(outputPath);
 
             var templateHandler = new FtlTemplateHandler();
-            var enumWriter = new EnumWriter(getLog(), outputPath, templateHandler::writeEnum, targetPackage);
-            var structWriter = new StructWriter(getLog(), outputPath, targetPackage, enableBuilder);
-            var libFunctionWriter = new FunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
+            var enumWriter = new LibcEnumWriter(getLog(), outputPath, templateHandler::writeEnum, targetPackage);
+            var structWriter = new LibcStructWriter(getLog(), outputPath, targetPackage, enableBuilder);
+            var libFunctionWriter = new LibcFunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
 
             var objectMapper = new ObjectMapper();
             for (var lib : libs) {
                 getLog().info("start generating native library " + lib.name());
                 var translationUnit = parseAst(objectMapper, lib.header());
-                var context = new Context(translationUnit, structWriter, enumWriter);
+                var context = new LibcContext(translationUnit, structWriter, enumWriter);
                 // lib containing functions
                 var functionCursors = context.getDeclarations(LibcCursor.KIND_FUNCTION)
                         .filter(cursor -> nativeFunctions.contains(cursor.getSpelling()))

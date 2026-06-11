@@ -1,6 +1,6 @@
-package ch.szclsb.kerinci.base.plugin.writer.struct;
+package ch.szclsb.kerinci.base.plugin.libc.writer.struct;
 
-import ch.szclsb.kerinci.base.plugin.Context;
+import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -21,7 +21,7 @@ public abstract class AbstractStructField implements StructField {
         this.javaType = javaType;
     }
 
-    public AbstractStructField(String fieldName, Context.Declaration declaration) {
+    public AbstractStructField(String fieldName, LibcContext.Declaration declaration) {
         this(fieldName, declaration.javaLayout(), declaration.bytes(), declaration.javaType());
     }
 

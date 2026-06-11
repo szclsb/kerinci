@@ -1,16 +1,16 @@
-package ch.szclsb.kerinci.base.plugin;
+package ch.szclsb.kerinci.base.plugin.libc;
 
-import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
-import ch.szclsb.kerinci.base.plugin.libc.LibcType;
-import ch.szclsb.kerinci.base.plugin.writer.EnumWriter;
-import ch.szclsb.kerinci.base.plugin.writer.StructWriter;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcType;
+import ch.szclsb.kerinci.base.plugin.libc.writer.LibcEnumWriter;
+import ch.szclsb.kerinci.base.plugin.libc.writer.LibcStructWriter;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-public class Context {
+public class LibcContext {
     private static final String VK_FLAGS = "VkFlags";
 
     public static String getFlagBitsType(String flags) {
@@ -55,10 +55,10 @@ public class Context {
     private final Map<String, TypeRef> typedefs;
     private final Map<String, Long> structSizes;
     private final Set<String> enumNames;
-    private final StructWriter structWriter;
-    private final EnumWriter enumWriter;
+    private final LibcStructWriter structWriter;
+    private final LibcEnumWriter enumWriter;
 
-    public Context(LibcCursor translationUnit, StructWriter structWriter, EnumWriter enumWriter) {
+    public LibcContext(LibcCursor translationUnit, LibcStructWriter structWriter, LibcEnumWriter enumWriter) {
         this.declarations = new HashMap<>();
         this.typedefs = new HashMap<>();
 //        this.handles = new HashMap<>();

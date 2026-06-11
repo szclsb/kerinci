@@ -1,8 +1,9 @@
-package ch.szclsb.kerinci.base.plugin.writer;
+package ch.szclsb.kerinci.base.plugin.libc.writer;
 
-import ch.szclsb.kerinci.base.plugin.Context;
-import ch.szclsb.kerinci.base.plugin.libc.LibcCursor;
-import ch.szclsb.kerinci.base.plugin.libc.LibcType;
+import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
+import ch.szclsb.kerinci.base.plugin.FileWriter;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
+import ch.szclsb.kerinci.base.plugin.libc.ast.LibcType;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.IOException;
@@ -11,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ch.szclsb.kerinci.base.plugin.Context.getFlagBitsType;
+import static ch.szclsb.kerinci.base.plugin.libc.LibcContext.getFlagBitsType;
 
-public class FunctionWriter extends FileWriter {
+public class LibcFunctionWriter extends FileWriter {
     @FunctionalInterface
     public interface ElaboratedResolver {
         String get() throws IOException;
@@ -35,7 +36,7 @@ public class FunctionWriter extends FileWriter {
     private final String generatedPackage;
     private final String functionPrefix;
 
-    public FunctionWriter(Log logger, Path dir, String generatedPackage, String functionPrefix) {
+    public LibcFunctionWriter(Log logger, Path dir, String generatedPackage, String functionPrefix) {
         super(logger, dir);
         this.generatedPackage = generatedPackage;
         this.functionPrefix = functionPrefix;
@@ -53,7 +54,7 @@ public class FunctionWriter extends FileWriter {
         };
     }
 
-    private String getJavaType(LibcCursor cursor, Context context) throws IOException {
+    private String getJavaType(LibcCursor cursor, LibcContext context) throws IOException {
         return getType(0, cursor.getType(), () -> {
             var e = cursor.getChildren().getFirst().getSpelling();
             var decl = context.declare(e);
@@ -69,7 +70,7 @@ public class FunctionWriter extends FileWriter {
         });
     }
 
-    public void write(String libName, List<LibcCursor> functionCursors, Context context) throws IOException {
+    public void write(String libName, List<LibcCursor> functionCursors, LibcContext context) throws IOException {
         var functionDefinitions = new ArrayList<FunctionDefinition>();
         for (var functionCursor : functionCursors) {
             var publicFunctionName = functionCursor.getSpelling();
