@@ -1,6 +1,6 @@
 package ch.szclsb.kerinci.base.plugin.template.ftl;
 
-import ch.szclsb.kerinci.base.plugin.template.EnumFileContext;
+import ch.szclsb.kerinci.base.plugin.template.EnumFileModel;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -37,7 +37,7 @@ public class FtlTemplateHandler {
         }
     }
 
-    public void writeEnum(EnumFileContext model, Writer writer) throws IOException {
+    public void writeEnum(EnumFileModel model, Writer writer) throws IOException {
         wrapTemplateException(() -> {
             var template = configuration.getTemplate(templateFileNameEnum);
             template.process(model, writer);

@@ -2,24 +2,20 @@
 package ${packageName};
 
 import ch.szclsb.kerinci.base.api.Flag;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Getter
-@RequiredArgsConstructor
-public enum ${enumName} implements Flag {
-    <#list consts as const>
+public enum ${className} implements Flag {
+    <#list content as const>
         ${const.name}(${const.value})<#if const_has_next>,<#else>;</#if>
     </#list>
 
     private final int value;
 
-    private ${enumName}(int value) {
+    private ${className}(int value) {
         this.value = value;
     }
 
@@ -28,9 +24,9 @@ public enum ${enumName} implements Flag {
         return value;
     }
 
-    private static Map<Integer, ${enumName}> flags = Arrays.stream(${enumName}.values())
+    private static Map<Integer, ${className}> flags = Arrays.stream(${className}.values())
         .collect(Collectors.toMap(Flag::getValue, Function.identity()));
-    public static ${enumName} ofValue(int value) {
+    public static ${className} ofValue(int value) {
         return flags.get(value);
     }
 }
