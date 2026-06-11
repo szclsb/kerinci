@@ -2,15 +2,22 @@ package ch.szclsb.kerinci.base.plugin.libc.mapper;
 
 
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
-import ch.szclsb.kerinci.base.plugin.template.EnumConst;
+import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
+import org.apache.maven.plugin.logging.Log;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class LibcEnumParser implements LibcParser<List<EnumConst>> {
+public class LibcEnumParser implements LibcParser<EnumTemplateDefinition> {
+    private final Log logger;
+
+    public LibcEnumParser(Log logger) {
+        this.logger = logger;
+    }
+
     @Override
-    public List<EnumConst> parse(LibcCursor enumCursor) {
-        var enumConst = new ArrayList<EnumConst>();
+    public EnumTemplateDefinition parse(String className, LibcCursor enumCursor) {
+        logger.info("-- declaring enum: %s (%s)".formatted(className, enumCursor.getSpelling()));
+        var enumConst = new ArrayList<EnumTemplateDefinition.EnumConst>();
         for (var enumValue : enumCursor.getChildren()) {
             if (LibcCursor.KIND_ENUM_CONST.equals(enumValue.getKind())) {
                 var valueName = enumValue.getSpelling();
@@ -23,9 +30,9 @@ public class LibcEnumParser implements LibcParser<List<EnumConst>> {
                                 .findFirst()
                                 .map(c -> c.getSpelling() + ".value"))
                         .orElse("");
-                enumConst.add(new EnumConst(valueName, value));
+                enumConst.add(new EnumTemplateDefinition.EnumConst(valueName, value));
             }
         }
-        return enumConst;
+        return new EnumTemplateDefinition(enumConst);
     }
 }

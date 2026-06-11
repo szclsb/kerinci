@@ -1,13 +1,12 @@
 package ch.szclsb.kerinci.base.plugin.template.ftl;
 
-import ch.szclsb.kerinci.base.plugin.template.EnumConst;
+import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
 import ch.szclsb.kerinci.base.plugin.template.TemplateWriter;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 public class FtlTemplateFactory {
@@ -47,7 +46,7 @@ public class FtlTemplateFactory {
         };
     }
 
-    public TemplateWriter<List<EnumConst>> createEnumFileModel() {
+    public TemplateWriter<EnumTemplateDefinition> createEnumFileModel() {
         return createFileModel(templateFileNameEnum);
     }
 }
