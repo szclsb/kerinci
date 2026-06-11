@@ -3,8 +3,7 @@ package ch.szclsb.kerinci.base.plugin.libc.writer;
 import ch.szclsb.kerinci.base.plugin.FileWriter;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.libc.mapper.LibcParser;
-import ch.szclsb.kerinci.base.plugin.template.EnumFileModel;
-import ch.szclsb.kerinci.base.plugin.template.FileModel;
+import ch.szclsb.kerinci.base.plugin.template.EnumConst;
 import ch.szclsb.kerinci.base.plugin.template.TemplateWriter;
 import org.apache.maven.plugin.logging.Log;
 
@@ -14,13 +13,13 @@ import java.util.List;
 
 public class LibcEnumWriter extends FileWriter {
     private final String generatedPackage;
-    private final LibcParser<List<EnumFileModel.EnumConst>> libcParser;
-    private final TemplateWriter<EnumFileModel> templateWriter;
+    private final LibcParser<List<EnumConst>> libcParser;
+    private final TemplateWriter<List<EnumConst>> templateWriter;
 
     public LibcEnumWriter(Log logger, Path dir,
                           String generatedPackage,
-                          LibcParser<List<EnumFileModel.EnumConst>> libcParser,
-                          TemplateWriter<EnumFileModel> templateWriter) {
+                          LibcParser<List<EnumConst>> libcParser,
+                          TemplateWriter<List<EnumConst>> templateWriter) {
         super(logger, dir);
         this.generatedPackage = generatedPackage;
         this.libcParser = libcParser;
@@ -29,9 +28,7 @@ public class LibcEnumWriter extends FileWriter {
 
     public void write(String className, LibcCursor enumCursor) throws IOException {
         logger.info("-- declaring enum: %s (%s)".formatted(className, enumCursor.getSpelling()));
-
-        var enumContent = libcParser.parse(enumCursor);
-        var model = new EnumFileModel(generatedPackage, className, enumContent);
-        writeFile(className, writer -> templateWriter.render(model, writer));
+        var model = libcParser.parse(enumCursor);
+        writeFile(className, writer -> templateWriter.render(generatedPackage, className, model, writer));
     }
 }

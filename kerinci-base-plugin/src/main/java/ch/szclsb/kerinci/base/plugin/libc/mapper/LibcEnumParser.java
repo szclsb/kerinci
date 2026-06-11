@@ -2,15 +2,15 @@ package ch.szclsb.kerinci.base.plugin.libc.mapper;
 
 
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
-import ch.szclsb.kerinci.base.plugin.template.EnumFileModel;
+import ch.szclsb.kerinci.base.plugin.template.EnumConst;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LibcEnumParser implements LibcParser<List<EnumFileModel.EnumConst>> {
+public class LibcEnumParser implements LibcParser<List<EnumConst>> {
     @Override
-    public List<EnumFileModel.EnumConst> parse(LibcCursor enumCursor) {
-        var enumConst = new ArrayList<EnumFileModel.EnumConst>();
+    public List<EnumConst> parse(LibcCursor enumCursor) {
+        var enumConst = new ArrayList<EnumConst>();
         for (var enumValue : enumCursor.getChildren()) {
             if (LibcCursor.KIND_ENUM_CONST.equals(enumValue.getKind())) {
                 var valueName = enumValue.getSpelling();
@@ -23,7 +23,7 @@ public class LibcEnumParser implements LibcParser<List<EnumFileModel.EnumConst>>
                                 .findFirst()
                                 .map(c -> c.getSpelling() + ".value"))
                         .orElse("");
-                enumConst.add(new EnumFileModel.EnumConst(valueName, value));
+                enumConst.add(new EnumConst(valueName, value));
             }
         }
         return enumConst;

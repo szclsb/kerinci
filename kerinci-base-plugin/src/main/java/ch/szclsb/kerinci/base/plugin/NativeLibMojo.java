@@ -3,7 +3,7 @@ package ch.szclsb.kerinci.base.plugin;
 import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.libc.mapper.LibcEnumParser;
-import ch.szclsb.kerinci.base.plugin.template.ftl.FtlTemplateHandler;
+import ch.szclsb.kerinci.base.plugin.template.ftl.FtlTemplateFactory;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcEnumWriter;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcFunctionWriter;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcStructWriter;
@@ -85,9 +85,9 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
             getLog().info("prepareOutputDirectory: " + outputPath);
             prepareDir(outputPath);
 
-            var templateHandler = new FtlTemplateHandler();
+            var templateHandler = new FtlTemplateFactory();
             var enumParser = new LibcEnumParser();
-            var enumWriter = new LibcEnumWriter(getLog(), outputPath, targetPackage, enumParser, templateHandler::writeEnum);
+            var enumWriter = new LibcEnumWriter(getLog(), outputPath, targetPackage, enumParser, templateHandler.createEnumFileModel());
             var structWriter = new LibcStructWriter(getLog(), outputPath, targetPackage, enableBuilder);
             var libFunctionWriter = new LibcFunctionWriter(getLog(), outputPath, targetPackage, nativeFunctionsPrefix);
 

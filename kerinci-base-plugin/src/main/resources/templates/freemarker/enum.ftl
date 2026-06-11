@@ -9,7 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public enum ${className} implements Flag {
-    <#list content as const>
+    <#list definition as const>
         ${const.name}(${const.value})<#if const_has_next>,<#else>;</#if>
     </#list>
 
