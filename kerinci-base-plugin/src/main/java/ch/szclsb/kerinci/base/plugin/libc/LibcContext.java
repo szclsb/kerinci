@@ -3,7 +3,7 @@ package ch.szclsb.kerinci.base.plugin.libc;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcType;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcStructWriter;
-import ch.szclsb.kerinci.base.plugin.libc.writer.LibcWriter;
+import ch.szclsb.kerinci.base.plugin.libc.writer.LibcObjectWriter;
 import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
 
 import java.io.IOException;
@@ -57,11 +57,11 @@ public class LibcContext {
     private final Map<String, Long> structSizes;
     private final Set<String> enumNames;
     private final LibcStructWriter structWriter;
-    private final LibcWriter<EnumTemplateDefinition> enumWriter;
+    private final LibcObjectWriter<EnumTemplateDefinition> enumWriter;
 
     public LibcContext(LibcCursor translationUnit,
                        LibcStructWriter structWriter,
-                       LibcWriter<EnumTemplateDefinition> enumWriter) {
+                       LibcObjectWriter<EnumTemplateDefinition> enumWriter) {
         this.declarations = new HashMap<>();
         this.typedefs = new HashMap<>();
 //        this.handles = new HashMap<>();

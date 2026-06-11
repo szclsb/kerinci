@@ -7,7 +7,7 @@ import org.apache.maven.plugin.logging.Log;
 
 import java.util.ArrayList;
 
-public class LibcEnumParser implements LibcParser<EnumTemplateDefinition> {
+public class LibcEnumParser implements LibcObjectParser<EnumTemplateDefinition> {
     private final Log logger;
 
     public LibcEnumParser(Log logger) {

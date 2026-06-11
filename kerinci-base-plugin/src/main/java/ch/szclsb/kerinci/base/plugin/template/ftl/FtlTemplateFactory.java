@@ -1,6 +1,7 @@
 package ch.szclsb.kerinci.base.plugin.template.ftl;
 
 import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
+import ch.szclsb.kerinci.base.plugin.template.FunctionsTemplateDefinition;
 import ch.szclsb.kerinci.base.plugin.template.TemplateWriter;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
@@ -12,6 +13,7 @@ import java.util.Map;
 public class FtlTemplateFactory {
     public static final String templatePath = "templates/freemarker";
     public static final String templateFileNameEnum = "enum.ftl";
+    public static final String templateFileNameLibrary = "library.ftl";
 
     private final Configuration configuration;
 
@@ -30,7 +32,7 @@ public class FtlTemplateFactory {
         }
     }
 
-    private <T> TemplateWriter<T> createFileModel(String templateFile) {
+    private <T> TemplateWriter<T> createFileTemplateWriter(String templateFile) {
         return (packageName, className, definition, writer) -> {
             var fileModel = Map.of(
                     "packageName", packageName,
@@ -46,7 +48,11 @@ public class FtlTemplateFactory {
         };
     }
 
-    public TemplateWriter<EnumTemplateDefinition> createEnumFileModel() {
-        return createFileModel(templateFileNameEnum);
+    public TemplateWriter<EnumTemplateDefinition> createEnumTemplateWriter() {
+        return createFileTemplateWriter(templateFileNameEnum);
+    }
+
+    public TemplateWriter<FunctionsTemplateDefinition> createLibraryTemplateWriter() {
+        return createFileTemplateWriter(templateFileNameLibrary);
     }
 }
