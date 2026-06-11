@@ -1,3 +1,6 @@
+<#macro enumconst name value>
+    ${name}(${value})
+</#macro>
 // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
 package ${packageName};
 
@@ -10,7 +13,7 @@ import java.util.stream.Collectors;
 
 public enum ${className} implements Flag {
     <#list definition.consts as const>
-        ${const.name}(${const.value})<#if const_has_next>,<#else>;</#if>
+        <@enumconst const.name const.value/><#if const_has_next>,<#else>;</#if>
     </#list>
 
     private final int value;
