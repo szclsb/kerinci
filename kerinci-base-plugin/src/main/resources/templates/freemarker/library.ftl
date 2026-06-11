@@ -23,9 +23,12 @@ public class ${className} {
         this.${function.handleName} = runtime.linkMethod("${function.nativeMethod}", FunctionDescriptor.ofVoid());  // FIXME return args
 </#list>
     }
-
 <#list definition.functions as function>
-    public ${function.returnType} ${function.methodName}(<#list function.methodArgs as arg>${arg.type} ${arg.name}<#if arg_has_next>,</#if></#list>) {
+
+    /**
+    * invokes native method ${function.nativeMethod}
+    */
+    public ${function.returnType} ${function.methodName}(<#list function.methodArgs as arg>${arg.type} ${arg.name}<#if arg_has_next>, </#if></#list>) {
         try {
             // FIXME return args
             ${function.handleName}.invoke();
