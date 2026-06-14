@@ -1,5 +1,5 @@
-<#macro format_field_memory_layout field>${field.definition.memoryLayout}.withName("${field.definition.name}")<#if field.padding gt 0>,
-    MemoryLayout.paddingLayout(${field.padding})</#if></#macro>
+<#macro format_field_memory_layout field><#if field.padding gt 0>MemoryLayout.paddingLayout(${field.padding}),
+    </#if>${field.definition.memoryLayout}.withName("${field.definition.name}")</#macro>
 // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
 package ${packageName};
 
@@ -47,14 +47,14 @@ public class ${className} implements ForeignObject {
     /**
     * getter for ${field.definition.name}
     */
-    public ${field.definition.javaType} get_${field.definition.name}() {
+    public ${field.definition.javaType} ${getter_method_name(field)}() {
         return ${read_field(field)};
     }
 
     /**
     * setter for ${field.definition.name}
     */
-    public void set_${field.definition.name}(${field.definition.javaType} value) {
+    public void ${setter_method_name(field)}(${field.definition.javaType} value) {
         ${write_field(field, "value")};
     }
 </#list>
@@ -73,8 +73,8 @@ public class ${className} implements ForeignObject {
         }
 <#list definition.fields as field>
 
-        public Builder set_${field.definition.name}(${field.definition.javaType} value) {
-            instance.set_${field.definition.name}(value);
+        public Builder ${setter_method_name(field)}(${field.definition.javaType} value) {
+            instance.${setter_method_name(field)}(value);
             return this;
         }
 </#list>

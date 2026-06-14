@@ -70,6 +70,10 @@ public class FtlTemplateFactory {
         return createFileTemplateWriter(templateFileNameEnum);
     }
 
+    private static String methodName(String prefix, String fieldName) {
+        return prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+    }
+
     private static TemplateMethodModelEx createTemplateMethodStructField(FtlTemplateMethodStructFieldFunction<?> function) {
         return arguments -> {
             if (arguments.get(0) instanceof GenericObjectModel fieldModel
@@ -90,9 +94,12 @@ public class FtlTemplateFactory {
 
     public TemplateWriter<StructTemplateDefinition> createStrcutTemplateWriter() {
         return createFileTemplateWriter(templateFileNameStruct, Map.of(
-//            "getter_method_name", arguments -> "get",
-//            "setter_method_name", arguments -> "set",
-                "read_field", createTemplateMethodStructField((field, templateMethodStructField, _) -> templateMethodStructField.readField(field)),
+                "getter_method_name", createTemplateMethodStructField((field, _, _) ->
+                        methodName("get", field.definition().name())),
+                "setter_method_name", createTemplateMethodStructField((field, _, _) ->
+                        methodName("set", field.definition().name())),
+                "read_field", createTemplateMethodStructField((field, templateMethodStructField, _) ->
+                        templateMethodStructField.readField(field)),
                 "write_field", createTemplateMethodStructField(((field, templateMethodStructField, extraArgParser) -> {
                     var varName = extraArgParser.readString(1);
                     return templateMethodStructField.writeField(field, varName);

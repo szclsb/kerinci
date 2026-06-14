@@ -56,9 +56,9 @@ public class LibcStructParser implements LibcObjectParser<StructTemplateDefiniti
             var padding = m > 0
                     ? fieldDefinition.bytes() - m
                     : 0L;
-            var field = new StructTemplateDefinition.Field(fieldDefinition, offset, padding);
-            fields.add(field);
-            offset += field.memoryLength();
+            offset += padding;
+            fields.add(new StructTemplateDefinition.Field(fieldDefinition, offset, padding));
+            offset += fieldDefinition.bytes();
         }
         return fields;
     }

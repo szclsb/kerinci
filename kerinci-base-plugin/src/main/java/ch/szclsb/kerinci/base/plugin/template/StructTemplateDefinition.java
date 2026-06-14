@@ -19,11 +19,8 @@ public record StructTemplateDefinition(
     public record Field(
             FieldDefinition definition,
             long offset,
-            long padding
+            long padding  // empty bytes between this field and field before. Used for ffm byte alignment
     ) {
-        public long memoryLength() {
-            return definition.bytes + padding;
-        }
     }
 
     public record FieldDefinition(
@@ -49,7 +46,7 @@ public record StructTemplateDefinition(
     @Override
     public OptionalLong javaObjectBytes() {
         return fields.stream()
-                .mapToLong(Field::memoryLength)
+                .mapToLong(field -> field.definition.bytes + field.padding)
                 .reduce(Long::sum);
     }
 }
