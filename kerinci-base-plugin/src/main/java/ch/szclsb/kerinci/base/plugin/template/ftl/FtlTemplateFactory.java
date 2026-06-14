@@ -21,11 +21,11 @@ public class FtlTemplateFactory {
     public static final String templateFileNameLibrary = "library.ftl";
 
     // todo use enum instead of string
-    private static final Map<String, FtlTemplateMethodStructField> templateMethodStructFieldMap = Map.of(
-            StructTemplateDefinition.FieldType.PRIMITIVE.name(), new FtlTemplateMethodStructFieldPrimitive(),
-            StructTemplateDefinition.FieldType.ENUM.name(), new FtlTemplateMethodStructFieldEnum(),
-            StructTemplateDefinition.FieldType.BITMASK.name(), new FtlTemplateMethodStructFieldBitMask(),
-            StructTemplateDefinition.FieldType.ELABORATED.name(), new FtlTemplateMethodStructFieldElaborated()
+    private static final Map<StructTemplateDefinition.FieldType, FtlTemplateMethodStructField> templateMethodStructFieldMap = Map.of(
+            StructTemplateDefinition.FieldType.PRIMITIVE, new FtlTemplateMethodStructFieldPrimitive(),
+            StructTemplateDefinition.FieldType.ENUM, new FtlTemplateMethodStructFieldEnum(),
+            StructTemplateDefinition.FieldType.BITMASK, new FtlTemplateMethodStructFieldBitMask(),
+            StructTemplateDefinition.FieldType.ELABORATED, new FtlTemplateMethodStructFieldElaborated()
     );
 
     private final Log logger;
@@ -73,19 +73,14 @@ public class FtlTemplateFactory {
     // TODO simplify
     private TemplateMethodModelEx createGetterTemplateMethod() {
         return arguments -> {
-            if (arguments.get(0) instanceof GenericObjectModel dType
-                    && arguments.get(1) instanceof TemplateScalarModel javaType
-                    && arguments.get(2) instanceof TemplateScalarModel memoryLayout
-                    && arguments.get(3) instanceof TemplateNumberModel fieldOffset) {
-                var templateMethodStructField = templateMethodStructFieldMap.get(dType.getAsString());
+            if (arguments.get(0) instanceof GenericObjectModel fieldModel
+                    && fieldModel.getWrappedObject() instanceof StructTemplateDefinition.Field field) {
+                var fieldType = field.definition().dType();
+                var templateMethodStructField = templateMethodStructFieldMap.get(fieldType);
                 if (templateMethodStructField != null) {
-                    return templateMethodStructField.getterMethod(
-                            javaType.getAsString(),
-                            memoryLayout.getAsString(),
-                            fieldOffset.getAsNumber().longValue()
-                    );
+                    return templateMethodStructField.getterMethod(field);
                 } else {
-                    throw new TemplateModelException("unknown dtype " + dType);
+                    throw new TemplateModelException("unknown dtype " + fieldType);
                 }
             } else {
                 throw new TemplateModelException("illagal arguments " + arguments);
@@ -96,21 +91,15 @@ public class FtlTemplateFactory {
     // TODO simplify
     private TemplateMethodModelEx createSetterTemplateMethod() {
         return arguments -> {
-            if (arguments.get(0) instanceof GenericObjectModel dType
-                    && arguments.get(1) instanceof TemplateScalarModel javaType
-                    && arguments.get(2) instanceof TemplateScalarModel memoryLayout
-                    && arguments.get(3) instanceof TemplateNumberModel fieldOffset
-                    && arguments.get(4) instanceof TemplateScalarModel varName) {
-                var templateMethodStructField = templateMethodStructFieldMap.get(dType.getAsString());
+            if (arguments.get(0) instanceof GenericObjectModel fieldModel
+                    && fieldModel.getWrappedObject() instanceof StructTemplateDefinition.Field field
+                    && arguments.get(1) instanceof TemplateScalarModel varNameModel) {
+                var fieldType = field.definition().dType();
+                var templateMethodStructField = templateMethodStructFieldMap.get(fieldType);
                 if (templateMethodStructField != null) {
-                    return templateMethodStructField.setterMethod(
-                            javaType.getAsString(),
-                            memoryLayout.getAsString(),
-                            fieldOffset.getAsNumber().longValue(),
-                            varName.getAsString()
-                    );
+                    return templateMethodStructField.setterMethod(field, varNameModel.getAsString());
                 } else {
-                    throw new TemplateModelException("unknown dtype " + dType);
+                    throw new TemplateModelException("unknown dtype " + fieldType);
                 }
             } else {
                 throw new TemplateModelException("illagal arguments " + arguments);

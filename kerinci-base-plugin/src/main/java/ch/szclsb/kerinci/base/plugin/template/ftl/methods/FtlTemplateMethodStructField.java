@@ -1,7 +1,9 @@
 package ch.szclsb.kerinci.base.plugin.template.ftl.methods;
 
-public interface FtlTemplateMethodStructField {
-    String getterMethod(String javaType, String memoryLayout, long fieldOffset);
+import ch.szclsb.kerinci.base.plugin.template.StructTemplateDefinition;
 
-    String setterMethod(String javaType, String memoryLayout, long fieldOffset, String varName);
+public interface FtlTemplateMethodStructField {
+    String getterMethod(StructTemplateDefinition.Field field);
+
+    String setterMethod(StructTemplateDefinition.Field field, String varName);
 }

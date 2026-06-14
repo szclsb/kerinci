@@ -48,14 +48,14 @@ public class ${className} implements ForeignObject {
     * getter for ${field.definition.name}
     */
     public ${field.definition.javaType} get_${field.definition.name}() {
-        return ${read_field(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, field.definition.name)};
+        return ${read_field(field)};
     }
 
     /**
     * setter for ${field.definition.name}
     */
     public void set_${field.definition.name}(${field.definition.javaType} value) {
-        ${write_field(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, "value")};
+        ${write_field(field, "value")};
     }
 </#list>
 <#if definition.enableBuilder>
