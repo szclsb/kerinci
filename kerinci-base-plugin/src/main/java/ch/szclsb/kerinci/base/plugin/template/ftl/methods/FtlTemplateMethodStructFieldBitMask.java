@@ -7,7 +7,7 @@ public class FtlTemplateMethodStructFieldBitMask implements FtlTemplateMethodStr
     //TODO: fetch BitMask implementation name form external source
 
     @Override
-    public String getterMethod(StructTemplateDefinition.Field field) {
+    public String readField(StructTemplateDefinition.Field field) {
         return "new KerinciBitMask<>(pSegment.get(%s, %d))".formatted(
                 field.definition().memoryLayout(),
                 field.offset()
@@ -15,7 +15,7 @@ public class FtlTemplateMethodStructFieldBitMask implements FtlTemplateMethodStr
     }
 
     @Override
-    public String setterMethod(StructTemplateDefinition.Field field, String varName) {
+    public String writeField(StructTemplateDefinition.Field field, String varName) {
         return "pSegment.set(%s, %d, %s.getValue())".formatted(
                 field.definition().memoryLayout(),
                 field.offset(),

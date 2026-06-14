@@ -5,7 +5,7 @@ import ch.szclsb.kerinci.base.plugin.template.StructTemplateDefinition;
 // move string to templates?
 public class FtlTemplateMethodStructFieldPrimitive implements FtlTemplateMethodStructField {
     @Override
-    public String getterMethod(StructTemplateDefinition.Field field) {
+    public String readField(StructTemplateDefinition.Field field) {
         return "pSegment.get(%s, %d)".formatted(
                 field.definition().memoryLayout(),
                 field.offset()
@@ -13,7 +13,7 @@ public class FtlTemplateMethodStructFieldPrimitive implements FtlTemplateMethodS
     }
 
     @Override
-    public String setterMethod(StructTemplateDefinition.Field field, String varName) {
+    public String writeField(StructTemplateDefinition.Field field, String varName) {
         return "pSegment.set(%s, %d, %s)".formatted(
                 field.definition().memoryLayout(),
                 field.offset(),

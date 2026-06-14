@@ -5,7 +5,7 @@ import ch.szclsb.kerinci.base.plugin.template.StructTemplateDefinition;
 // move string to templates?
 public class FtlTemplateMethodStructFieldElaborated implements FtlTemplateMethodStructField {
     @Override
-    public String getterMethod(StructTemplateDefinition.Field field) {
+    public String readField(StructTemplateDefinition.Field field) {
         return "new %s(pSegment.asSlice(%d, %s))".formatted(
                 field.definition().javaType(),
                 field.offset(),
@@ -14,7 +14,7 @@ public class FtlTemplateMethodStructFieldElaborated implements FtlTemplateMethod
     }
 
     @Override
-    public String setterMethod(StructTemplateDefinition.Field field, String varName) {
+    public String writeField(StructTemplateDefinition.Field field, String varName) {
         return "throw new UnsupportedOperationException()";  // ignore or copy memory
     }
 }

@@ -70,34 +70,15 @@ public class FtlTemplateFactory {
         return createFileTemplateWriter(templateFileNameEnum);
     }
 
-    // TODO simplify
-    private TemplateMethodModelEx createGetterTemplateMethod() {
+    private static TemplateMethodModelEx createTemplateMethodStructField(FtlTemplateMethodStructFieldFunction<?> function) {
         return arguments -> {
             if (arguments.get(0) instanceof GenericObjectModel fieldModel
                     && fieldModel.getWrappedObject() instanceof StructTemplateDefinition.Field field) {
                 var fieldType = field.definition().dType();
                 var templateMethodStructField = templateMethodStructFieldMap.get(fieldType);
                 if (templateMethodStructField != null) {
-                    return templateMethodStructField.getterMethod(field);
-                } else {
-                    throw new TemplateModelException("unknown dtype " + fieldType);
-                }
-            } else {
-                throw new TemplateModelException("illagal arguments " + arguments);
-            }
-        };
-    }
-
-    // TODO simplify
-    private TemplateMethodModelEx createSetterTemplateMethod() {
-        return arguments -> {
-            if (arguments.get(0) instanceof GenericObjectModel fieldModel
-                    && fieldModel.getWrappedObject() instanceof StructTemplateDefinition.Field field
-                    && arguments.get(1) instanceof TemplateScalarModel varNameModel) {
-                var fieldType = field.definition().dType();
-                var templateMethodStructField = templateMethodStructFieldMap.get(fieldType);
-                if (templateMethodStructField != null) {
-                    return templateMethodStructField.setterMethod(field, varNameModel.getAsString());
+                    var argParser = new FtlTemplateMethodExtraArgParser(arguments);
+                    return function.apply(field, templateMethodStructField, argParser);
                 } else {
                     throw new TemplateModelException("unknown dtype " + fieldType);
                 }
@@ -111,8 +92,11 @@ public class FtlTemplateFactory {
         return createFileTemplateWriter(templateFileNameStruct, Map.of(
 //            "getter_method_name", arguments -> "get",
 //            "setter_method_name", arguments -> "set",
-                "read_field", createGetterTemplateMethod(),
-                "write_field", createSetterTemplateMethod()
+                "read_field", createTemplateMethodStructField((field, templateMethodStructField, _) -> templateMethodStructField.readField(field)),
+                "write_field", createTemplateMethodStructField(((field, templateMethodStructField, extraArgParser) -> {
+                    var varName = extraArgParser.readString(1);
+                    return templateMethodStructField.writeField(field, varName);
+                }))
         ));
     }
 
