@@ -76,15 +76,13 @@ public class FtlTemplateFactory {
             if (arguments.get(0) instanceof GenericObjectModel dType
                     && arguments.get(1) instanceof TemplateScalarModel javaType
                     && arguments.get(2) instanceof TemplateScalarModel memoryLayout
-                    && arguments.get(3) instanceof TemplateNumberModel offset
-                    && arguments.get(4) instanceof TemplateScalarModel name) {
+                    && arguments.get(3) instanceof TemplateNumberModel fieldOffset) {
                 var templateMethodStructField = templateMethodStructFieldMap.get(dType.getAsString());
                 if (templateMethodStructField != null) {
                     return templateMethodStructField.getterMethod(
                             javaType.getAsString(),
                             memoryLayout.getAsString(),
-                            offset.getAsNumber().longValue(),
-                            name.getAsString()
+                            fieldOffset.getAsNumber().longValue()
                     );
                 } else {
                     throw new TemplateModelException("unknown dtype " + dType);
@@ -101,15 +99,15 @@ public class FtlTemplateFactory {
             if (arguments.get(0) instanceof GenericObjectModel dType
                     && arguments.get(1) instanceof TemplateScalarModel javaType
                     && arguments.get(2) instanceof TemplateScalarModel memoryLayout
-                    && arguments.get(3) instanceof TemplateNumberModel offset
-                    && arguments.get(4) instanceof TemplateScalarModel name) {
+                    && arguments.get(3) instanceof TemplateNumberModel fieldOffset
+                    && arguments.get(4) instanceof TemplateScalarModel varName) {
                 var templateMethodStructField = templateMethodStructFieldMap.get(dType.getAsString());
                 if (templateMethodStructField != null) {
                     return templateMethodStructField.setterMethod(
                             javaType.getAsString(),
                             memoryLayout.getAsString(),
-                            offset.getAsNumber().longValue(),
-                            name.getAsString()
+                            fieldOffset.getAsNumber().longValue(),
+                            varName.getAsString()
                     );
                 } else {
                     throw new TemplateModelException("unknown dtype " + dType);
