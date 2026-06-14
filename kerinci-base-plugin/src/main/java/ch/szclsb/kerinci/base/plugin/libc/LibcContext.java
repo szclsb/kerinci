@@ -2,9 +2,9 @@ package ch.szclsb.kerinci.base.plugin.libc;
 
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcType;
-import ch.szclsb.kerinci.base.plugin.libc.writer.LibcStructWriter;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcObjectWriter;
 import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
+import ch.szclsb.kerinci.base.plugin.template.StructTemplateDefinition;
 
 import java.io.IOException;
 import java.util.*;
@@ -56,11 +56,11 @@ public class LibcContext {
     private final Map<String, TypeRef> typedefs;
     private final Map<String, Long> structSizes;
     private final Set<String> enumNames;
-    private final LibcStructWriter structWriter;
+    private final LibcObjectWriter<StructTemplateDefinition> structWriter;
     private final LibcObjectWriter<EnumTemplateDefinition> enumWriter;
 
     public LibcContext(LibcCursor translationUnit,
-                       LibcStructWriter structWriter,
+                       LibcObjectWriter<StructTemplateDefinition> structWriter,
                        LibcObjectWriter<EnumTemplateDefinition> enumWriter) {
         this.declarations = new HashMap<>();
         this.typedefs = new HashMap<>();
@@ -148,14 +148,14 @@ public class LibcContext {
         }
         if (LibcCursor.KIND_ENUM.equals(cursor.getKind())) {
             if (!enumNames.contains(typeName)) {
-                enumWriter.write(typeName, cursor);
+                enumWriter.write(typeName, cursor, this);
                 enumNames.add(typeName);
             }
             return new Declaration(LibcCursor.KIND_ENUM, typeChain, typeName, "JAVA_INT", 4);
         } else if (LibcCursor.KIND_STRUCT.equals(cursor.getKind())) {
             var structSize = structSizes.get(typeName);
             if (structSize == null) {
-                structSize = structWriter.write(typeName, cursor, this);
+                structSize = structWriter.write(typeName, cursor, this).orElse(0);
                 structSizes.put(typeName, structSize);
             }
             return new Declaration(LibcCursor.KIND_STRUCT, typeChain, typeName, typeName + ".LAYOUT", structSize);

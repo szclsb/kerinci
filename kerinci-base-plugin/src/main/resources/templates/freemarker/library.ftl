@@ -1,4 +1,4 @@
-<#macro formart_args args><#list args as arg>${arg.type} ${arg.name}<#if arg_has_next>, </#if></#list></#macro>
+<#macro formart_params params><#list params as param>${param.type} ${param.name}<#if param_has_next>, </#if></#list></#macro>
 // GENERATED CLASS, DO NOT MODIFY THIS CLASS: CHANGES WILL BE OVERWRITTEN
 package ${packageName};
 
@@ -29,7 +29,7 @@ public class ${className} {
     /**
     * invokes native method ${function.nativeMethod}
     */
-    public ${function.returnType} ${function.methodName}(<@formart_args function.methodArgs/>) {
+    public ${function.returnType} ${function.methodName}(<@formart_params function.methodParams/>) {
         try {
             // FIXME return args
             ${function.handleName}.invoke();

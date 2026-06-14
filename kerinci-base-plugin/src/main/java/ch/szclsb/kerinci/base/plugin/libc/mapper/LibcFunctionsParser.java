@@ -63,14 +63,14 @@ public class LibcFunctionsParser implements LibcLibraryParser {
             var functionName = functionPrefix + publicFunctionName;
             logger.info("-- declaring function: %s".formatted(functionName));
             var returnType = "void";  // FIXME
-            var params = new ArrayList<FunctionsTemplateDefinition.Function.Arg>();
+            var params = new ArrayList<FunctionsTemplateDefinition.Function.Param>();
             for (var childCursor : functionCursor.getChildren()) {
                 if (LibcCursor.KIND_PARAMETER.equals(childCursor.getKind())) {
                     var paramName = childCursor.getSpelling();
                     logger.debug("---- resolving parameter: %s".formatted(paramName));
                     var javaType = getJavaType(childCursor, context);
                     if (javaType != null) {
-                        params.add(new FunctionsTemplateDefinition.Function.Arg(getJavaType(childCursor, context), paramName));
+                        params.add(new FunctionsTemplateDefinition.Function.Param(getJavaType(childCursor, context), paramName));
                     } else {
                         logger.warn("---- ignoring parameter %s, because resolved java type is null".formatted(paramName));
                     }

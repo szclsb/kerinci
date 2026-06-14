@@ -4,10 +4,10 @@ import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.libc.mapper.LibcEnumParser;
 import ch.szclsb.kerinci.base.plugin.libc.mapper.LibcFunctionsParser;
+import ch.szclsb.kerinci.base.plugin.libc.mapper.LibcStructParser;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcObjectWriter;
 import ch.szclsb.kerinci.base.plugin.template.ftl.FtlTemplateFactory;
 import ch.szclsb.kerinci.base.plugin.libc.writer.LibcLibraryWriter;
-import ch.szclsb.kerinci.base.plugin.libc.writer.LibcStructWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -86,11 +86,12 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
             getLog().info("prepareOutputDirectory: " + outputPath);
             prepareDir(outputPath);
 
-            var templateHandler = new FtlTemplateFactory();
+            var templateHandler = new FtlTemplateFactory(getLog());
             var enumParser = new LibcEnumParser(getLog());
+            var structParser = new LibcStructParser(getLog(), enableBuilder);
             var functionParser = new LibcFunctionsParser(getLog(), nativeFunctionsPrefix);
             var enumWriter = new LibcObjectWriter<>(getLog(), outputPath, targetPackage, enumParser, templateHandler.createEnumTemplateWriter());
-            var structWriter = new LibcStructWriter(getLog(), outputPath, targetPackage, enableBuilder);
+            var structWriter = new LibcObjectWriter<>(getLog(), outputPath, targetPackage, structParser, templateHandler.createStrcutTemplateWriter());
             var libFunctionWriter = new LibcLibraryWriter(getLog(), outputPath, targetPackage, functionParser, templateHandler.createLibraryTemplateWriter());
 
             var objectMapper = new ObjectMapper();

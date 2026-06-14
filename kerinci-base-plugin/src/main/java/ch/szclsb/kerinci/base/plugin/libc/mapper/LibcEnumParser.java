@@ -1,6 +1,7 @@
 package ch.szclsb.kerinci.base.plugin.libc.mapper;
 
 
+import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
 import ch.szclsb.kerinci.base.plugin.libc.ast.LibcCursor;
 import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
 import org.apache.maven.plugin.logging.Log;
@@ -15,7 +16,7 @@ public class LibcEnumParser implements LibcObjectParser<EnumTemplateDefinition> 
     }
 
     @Override
-    public EnumTemplateDefinition parse(String className, LibcCursor enumCursor) {
+    public EnumTemplateDefinition parse(String className, LibcCursor enumCursor, LibcContext context) {
         logger.info("-- declaring enum: %s (%s)".formatted(className, enumCursor.getSpelling()));
         var enumConst = new ArrayList<EnumTemplateDefinition.EnumConst>();
         for (var enumValue : enumCursor.getChildren()) {
