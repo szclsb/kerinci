@@ -28,8 +28,13 @@ public class LibcStructParser implements LibcObjectParser<StructTemplateDefiniti
             return null;  //TODO typeref and function pointer;
         }
         if (decl.isFlag()) {
-            return StructTemplateDefinition.FieldDefinition.ofDecl(
-                    StructTemplateDefinition.FieldType.BITMASK, fieldName, decl);
+            return new StructTemplateDefinition.FieldDefinition(
+                    StructTemplateDefinition.FieldType.BITMASK,
+                    fieldName,
+                    "BitMask<%s>".formatted(decl.javaType()),
+                    decl.javaLayout(),
+                    decl.bytes()
+            );
         }
         if (LibcCursor.KIND_ENUM.equals(decl.cursorKind())) {
             return StructTemplateDefinition.FieldDefinition.ofDecl(

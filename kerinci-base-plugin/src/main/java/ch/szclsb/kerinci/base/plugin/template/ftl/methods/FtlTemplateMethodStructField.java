@@ -4,6 +4,4 @@ public interface FtlTemplateMethodStructField {
     String getterMethod(String javaType, String memoryLayout, long fieldOffset, String fieldName);
 
     String setterMethod(String javaType, String memoryLayout, long fieldOffset, String fieldName);
-
-    String builderMethod(String javaType, String memoryLayout, long fieldOffset, String fieldName);
 }

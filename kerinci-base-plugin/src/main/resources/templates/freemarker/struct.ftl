@@ -47,12 +47,16 @@ public class ${className} implements ForeignObject {
     /**
     * getter for ${field.definition.name}
     */
-${getter_method(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, field.definition.name)}
+    public ${field.definition.javaType} get_${field.definition.name}() {
+        return ${read_field(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, field.definition.name)};
+    }
 
     /**
     * setter for ${field.definition.name}
     */
-${setter_method(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, field.definition.name)}
+    public void set_${field.definition.name}(${field.definition.javaType} value) {
+        ${write_field(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, "value")};
+    }
 </#list>
 <#if definition.enableBuilder>
 
@@ -68,7 +72,11 @@ ${setter_method(field.definition.dType, field.definition.javaType, field.definit
             // TODO sType
         }
 <#list definition.fields as field>
-${builder_method(field.definition.dType, field.definition.javaType, field.definition.memoryLayout, field.offset, field.definition.name)}
+
+        public Builder set_${field.definition.name}(${field.definition.javaType} value) {
+            instance.set_${field.definition.name}(value);
+            return this;
+        }
 </#list>
 
         public ${className} build() {

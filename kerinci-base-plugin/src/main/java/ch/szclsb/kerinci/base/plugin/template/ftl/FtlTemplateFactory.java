@@ -120,38 +120,12 @@ public class FtlTemplateFactory {
         };
     }
 
-    // TODO simplify
-    private TemplateMethodModelEx createBuilderTemplateMethod() {
-        return arguments -> {
-            if (arguments.get(0) instanceof GenericObjectModel dType
-                    && arguments.get(1) instanceof TemplateScalarModel javaType
-                    && arguments.get(2) instanceof TemplateScalarModel memoryLayout
-                    && arguments.get(3) instanceof TemplateNumberModel offset
-                    && arguments.get(4) instanceof TemplateScalarModel name) {
-                var templateMethodStructField = templateMethodStructFieldMap.get(dType.getAsString());
-                if (templateMethodStructField != null) {
-                    return templateMethodStructField.builderMethod(
-                            javaType.getAsString(),
-                            memoryLayout.getAsString(),
-                            offset.getAsNumber().longValue(),
-                            name.getAsString()
-                    );
-                } else {
-                    throw new TemplateModelException("unknown dtype " + dType);
-                }
-            } else {
-                throw new TemplateModelException("illagal arguments " + arguments);
-            }
-        };
-    }
-
     public TemplateWriter<StructTemplateDefinition> createStrcutTemplateWriter() {
         return createFileTemplateWriter(templateFileNameStruct, Map.of(
 //            "getter_method_name", arguments -> "get",
 //            "setter_method_name", arguments -> "set",
-                "getter_method", createGetterTemplateMethod(),
-                "setter_method", createSetterTemplateMethod(),
-                "builder_method", createBuilderTemplateMethod()
+                "read_field", createGetterTemplateMethod(),
+                "write_field", createSetterTemplateMethod()
         ));
     }
 
