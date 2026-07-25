@@ -20,7 +20,6 @@ public class FtlTemplateFactory {
     public static final String templateFileNameStruct = "struct.ftl";
     public static final String templateFileNameLibrary = "library.ftl";
 
-    // todo use enum instead of string
     private static final Map<StructTemplateDefinition.FieldType, FtlTemplateMethodStructField> templateMethodStructFieldMap = Map.of(
             StructTemplateDefinition.FieldType.PRIMITIVE, new FtlTemplateMethodStructFieldPrimitive(),
             StructTemplateDefinition.FieldType.ENUM, new FtlTemplateMethodStructFieldEnum(),
@@ -75,36 +74,43 @@ public class FtlTemplateFactory {
     }
 
     private static TemplateMethodModelEx createTemplateMethodStructField(FtlTemplateMethodStructFieldFunction<?> function) {
+        return createTemplateMethodStructField(StructTemplateDefinition.Field.class, (field, extraArgParser) -> {
+            var fieldType = field.definition().dType();
+            var templateMethodStructField = templateMethodStructFieldMap.get(fieldType);
+            if (templateMethodStructField != null) {
+                return function.apply(field, templateMethodStructField, extraArgParser);
+            } else {
+                throw new TemplateModelException("unknown dtype " + fieldType);
+            }
+        });
+    }
+
+    private static <T> TemplateMethodModelEx createTemplateMethodStructField(Class<T> argType, FtlTemplateMethodFunction<T, ?> function) {
         return arguments -> {
             if (arguments.get(0) instanceof GenericObjectModel fieldModel
-                    && fieldModel.getWrappedObject() instanceof StructTemplateDefinition.Field field) {
-                var fieldType = field.definition().dType();
-                var templateMethodStructField = templateMethodStructFieldMap.get(fieldType);
-                if (templateMethodStructField != null) {
-                    var argParser = new FtlTemplateMethodExtraArgParser(arguments);
-                    return function.apply(field, templateMethodStructField, argParser);
-                } else {
-                    throw new TemplateModelException("unknown dtype " + fieldType);
-                }
+                    && argType.isAssignableFrom(fieldModel.getWrappedObject().getClass())) {
+                var arg = argType.cast(fieldModel.getWrappedObject());
+                var argParser = new FtlTemplateMethodExtraArgParser(arguments);
+                return function.apply(arg, argParser);
             } else {
-                throw new TemplateModelException("illagal arguments " + arguments);
+                throw new TemplateModelException("cannot create template method: Illagal arguments " + arguments + ", expected: " + argType);
             }
         };
     }
 
     public TemplateWriter<StructTemplateDefinition> createStrcutTemplateWriter() {
-        return createFileTemplateWriter(templateFileNameStruct, Map.of(
-                "getter_method_name", createTemplateMethodStructField((field, _, _) ->
-                        methodName("get", field.definition().name())),
-                "setter_method_name", createTemplateMethodStructField((field, _, _) ->
-                        methodName("set", field.definition().name())),
-                "read_field", createTemplateMethodStructField((field, templateMethodStructField, _) ->
-                        templateMethodStructField.readField(field)),
-                "write_field", createTemplateMethodStructField(((field, templateMethodStructField, extraArgParser) -> {
-                    var varName = extraArgParser.readString(1);
-                    return templateMethodStructField.writeField(field, varName);
-                }))
-        ));
+        var additions = new HashMap<String, Object>();
+        additions.put("getter_method_name", createTemplateMethodStructField(StructTemplateDefinition.Field.class, (field, _) ->
+                methodName("get", field.definition().name())));
+        additions.put("setter_method_name", createTemplateMethodStructField(StructTemplateDefinition.Field.class, (field, _) ->
+                methodName("set", field.definition().name())));
+        additions.put("read_field", createTemplateMethodStructField((field, templateMethodStructField, _) ->
+                templateMethodStructField.readField(field)));
+        additions.put("write_field", createTemplateMethodStructField(((field, templateMethodStructField, extraArgParser) -> {
+            var varName = extraArgParser.readString(1);
+            return templateMethodStructField.writeField(field, varName);
+        })));
+        return createFileTemplateWriter(templateFileNameStruct, additions);
     }
 
     public TemplateWriter<FunctionsTemplateDefinition> createLibraryTemplateWriter() {

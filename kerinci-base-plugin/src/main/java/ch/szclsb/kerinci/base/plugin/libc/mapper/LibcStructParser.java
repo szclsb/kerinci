@@ -15,10 +15,16 @@ import java.util.List;
 public class LibcStructParser implements LibcObjectParser<StructTemplateDefinition> {
     private final Log logger;
     private final boolean enableBuilder;
+    private final String sTypeFieldName;
+    private final String sTypeEnum;
+    private final String sTypeValuePrefix;
 
-    public LibcStructParser(Log logger, boolean enableBuilder) {
+    public LibcStructParser(Log logger, boolean enableBuilder, String sTypeFieldName, String sTypeEnum, String sTypeValuePrefix) {
         this.logger = logger;
         this.enableBuilder = enableBuilder;
+        this.sTypeFieldName = sTypeFieldName;
+        this.sTypeEnum = sTypeEnum;
+        this.sTypeValuePrefix = sTypeValuePrefix;
     }
 
     private StructTemplateDefinition.FieldDefinition declare(String fieldName, LibcCursor typeCursor, LibcContext context) throws IOException {
@@ -63,6 +69,20 @@ public class LibcStructParser implements LibcObjectParser<StructTemplateDefiniti
         return fields;
     }
 
+    private String getSTypeValue(String className) {
+            var sb = new StringBuilder(sTypeValuePrefix);
+            var charArray = className.substring(2).toCharArray();
+            for (var i = 0; i < charArray.length; i++) {
+                var c = charArray[i];
+                var cp = i - 1 < 0 ? null : charArray[i - 1];
+                if (Character.isUpperCase(c) && cp != null && Character.isLowerCase(cp)) {
+                    sb.append("_");
+                }
+                sb.append(Character.toUpperCase(c));
+            }
+            return sb.toString();
+    }
+
     @Override
     public StructTemplateDefinition parse(String className, LibcCursor structCursor, LibcContext context) throws IOException {
         logger.info("-- declaring struct: %s (%s)".formatted(className, structCursor.getSpelling()));
@@ -87,20 +107,14 @@ public class LibcStructParser implements LibcObjectParser<StructTemplateDefiniti
             }
         }
         var fields = offsetAndPadding(fieldDefinitions);
-        return new StructTemplateDefinition(fields, enableBuilder);
+        var sType = fields.stream()
+                .filter(field -> sTypeFieldName.equals(field.definition().name()))
+                .findFirst()
+                .map(sTypeField -> new StructTemplateDefinition.SType(
+                        sTypeField,
+                        sTypeEnum,
+                        getSTypeValue(className)))
+                .orElse(null);
+        return new StructTemplateDefinition(fields, sType, enableBuilder);
     }
 }
-
-//  if (fields.stream().anyMatch(field -> STRUCTURE_TYPE_FIELD.equals(field.getFieldName()))) {
-//// set sType if present
-//var sb = new StringBuilder();
-//var charArray = className.substring(2).toCharArray();
-//                    for (var i = 0; i < charArray.length; i++) {
-//var c = charArray[i];
-//var cp = i - 1 < 0 ? null : charArray[i - 1];
-//                        if (Character.isUpperCase(c) && cp != null && Character.isLowerCase(cp)) {
-//        sb.append("_");
-//                        }
-//                                sb.append(Character.toUpperCase(c));
-//        }
-//var sType = "ch.szclsb.kerinci.api.VkStructureType.VK_STRUCTURE_TYPE_" + sb;

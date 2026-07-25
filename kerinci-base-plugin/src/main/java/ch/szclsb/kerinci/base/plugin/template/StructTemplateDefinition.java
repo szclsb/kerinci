@@ -3,10 +3,12 @@ package ch.szclsb.kerinci.base.plugin.template;
 import ch.szclsb.kerinci.base.plugin.libc.LibcContext;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalLong;
 
 public record StructTemplateDefinition(
         List<StructTemplateDefinition.Field> fields,
+        SType sType,
         boolean enableBuilder
 ) implements TemplateDefinition {
     public enum FieldType {
@@ -21,6 +23,7 @@ public record StructTemplateDefinition(
             long offset,
             long padding  // empty bytes between this field and field before. Used for ffm byte alignment
     ) {
+
     }
 
     public record FieldDefinition(
@@ -29,6 +32,7 @@ public record StructTemplateDefinition(
             String javaType,
             String memoryLayout,
             long bytes) {
+
         public static FieldDefinition ofInt(String name) {
             return new FieldDefinition(FieldType.PRIMITIVE, name, "int", "JAVA_INT", 4);
         }
@@ -41,6 +45,13 @@ public record StructTemplateDefinition(
         public static FieldDefinition ofDecl(FieldType fieldType, String name, LibcContext.Declaration declaration) {
             return new FieldDefinition(fieldType, name, declaration.javaType(), declaration.javaLayout(), declaration.bytes());
         }
+    }
+
+    public record SType(
+            Field field,
+            String enumName,
+            String value
+    ) {
     }
 
     @Override

@@ -35,6 +35,12 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
     private File vulkanSdk;
     @Parameter(property = "enableBuilder")
     private boolean enableBuilder;
+    @Parameter(property = "sTypeFieldName", defaultValue = "sType")
+    private String sTypeFieldName;
+    @Parameter(property = "sTypeEnum", defaultValue = "VkStructureType")
+    private String sTypeEnum;
+    @Parameter(property = "sTypeValuePrefix", defaultValue = "VK_STRUCTURE_TYPE_")
+    private String sTypeValuePrefix;
     @Parameter(property = "defineMacros")
     private Collection<String> defineMacros;
     @Parameter(property = "targetPackage")
@@ -88,7 +94,7 @@ public class NativeLibMojo extends AbstractCommandProcessMojo {
 
             var templateHandler = new FtlTemplateFactory(getLog());
             var enumParser = new LibcEnumParser(getLog());
-            var structParser = new LibcStructParser(getLog(), enableBuilder);
+            var structParser = new LibcStructParser(getLog(), enableBuilder, sTypeFieldName, sTypeEnum, sTypeValuePrefix);
             var functionParser = new LibcFunctionsParser(getLog(), nativeFunctionsPrefix);
             var enumWriter = new LibcObjectWriter<>(getLog(), outputPath, targetPackage, enumParser, templateHandler.createEnumTemplateWriter());
             var structWriter = new LibcObjectWriter<>(getLog(), outputPath, targetPackage, structParser, templateHandler.createStrcutTemplateWriter());

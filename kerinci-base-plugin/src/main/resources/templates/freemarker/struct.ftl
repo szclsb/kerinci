@@ -25,6 +25,10 @@ public class ${className} implements ForeignObject {
     <@format_field_memory_layout field/><#if field_has_next>,</#if>
 </#list>
     ).withName("${className}");
+<#if definition.sType??>
+    <#assign sType = definition.sType>
+    public static final ${sType.enumName} STYPE = ${sType.enumName}.${sType.value};
+</#if>
 
     private final MemorySegment pSegment;
     private final int index;
@@ -69,14 +73,18 @@ public class ${className} implements ForeignObject {
 
         private Builder(SegmentAllocator allocator) {
             this.instance = new ${className}(allocator.allocate(LAYOUT));
-            // TODO sType
+    <#if definition.sType??>
+            this.instance.${setter_method_name(definition.sType.field)}(STYPE);
+    </#if>
         }
 <#list definition.fields as field>
+    <#if !definition.sType?? || (definition.sType.field.definition.name != field.definition.name)>
 
         public Builder ${setter_method_name(field)}(${field.definition.javaType} value) {
             instance.${setter_method_name(field)}(value);
             return this;
         }
+    </#if>
 </#list>
 
         public ${className} build() {
