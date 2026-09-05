@@ -7,12 +7,29 @@ import ch.szclsb.kerinci.base.plugin.template.EnumTemplateDefinition;
 import org.apache.maven.plugin.logging.Log;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class LibcEnumParser implements LibcObjectParser<EnumTemplateDefinition> {
     private final Log logger;
 
     public LibcEnumParser(Log logger) {
         this.logger = logger;
+    }
+
+    private static Optional<String> getValue(LibcCursor cursor) {
+        return cursor.getChildren().stream()
+                .filter(c -> LibcCursor.KIND_INT_LITERAL.equals(c.getKind()))
+                .findFirst()
+                .map(LibcCursor::getSpelling)
+                .or(() -> cursor.getChildren().stream()
+                        .filter(c -> LibcCursor.KIND_REF_EXPR.equals(c.getKind()))
+                        .findFirst()
+                        .map(c -> c.getSpelling() + ".value"))
+                .or(() -> cursor.getChildren().stream()
+                        .filter(c -> LibcCursor.KIND_UNARY_OPERATOR.equals(c.getKind()))
+                        .findFirst()
+                        .flatMap(LibcEnumParser::getValue)
+                        .map(v -> "-" + v));  // TODO check operator?
     }
 
     @Override
@@ -22,14 +39,7 @@ public class LibcEnumParser implements LibcObjectParser<EnumTemplateDefinition> 
         for (var enumValue : enumCursor.getChildren()) {
             if (LibcCursor.KIND_ENUM_CONST.equals(enumValue.getKind())) {
                 var valueName = enumValue.getSpelling();
-                var value = enumValue.getChildren().stream()
-                        .filter(c -> LibcCursor.KIND_INT_LITERAL.equals(c.getKind()))
-                        .findFirst()
-                        .map(LibcCursor::getSpelling)
-                        .or(() -> enumValue.getChildren().stream()
-                                .filter(c -> LibcCursor.KIND_REF_EXPR.equals(c.getKind()))
-                                .findFirst()
-                                .map(c -> c.getSpelling() + ".value"))
+                var value = getValue(enumValue)
                         .orElse("");
                 enumConst.add(new EnumTemplateDefinition.EnumConst(valueName, value));
             }

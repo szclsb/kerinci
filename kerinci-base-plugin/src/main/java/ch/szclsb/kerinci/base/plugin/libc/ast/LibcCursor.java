@@ -18,6 +18,7 @@ public class LibcCursor {
     public static final String KIND_INT_LITERAL = "CursorKind.INTEGER_LITERAL";
     public static final String KIND_TYPEDEF = "CursorKind.TYPEDEF_DECL";
     public static final String KIND_TYPEREF = "CursorKind.TYPE_REF";
+    public static final String KIND_UNARY_OPERATOR = "CursorKind.UNARY_OPERATOR";
 
     private String kind;
     private String spelling;

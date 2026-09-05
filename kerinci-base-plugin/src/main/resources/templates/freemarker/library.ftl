@@ -32,7 +32,7 @@ public class ${className} {
     public ${function.returnType} ${function.methodName}(<@formart_params function.methodParams/>) {
         try {
             // FIXME return args
-            ${function.handleName}.invoke();
+            <#if function.returnType != "void">return (${function.returnType}) </#if>${function.handleName}.invoke();
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
